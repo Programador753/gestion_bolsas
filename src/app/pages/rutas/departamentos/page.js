@@ -8,6 +8,7 @@ export default function Bolsas() {
         <div>
           <h1>Bolsas</h1>
           <Link href="/bolsas/presupuesto">Bolsa Presupuesto</Link>
+          <br />
           <Link href="/bolsas/inversion">Bolsa Inversion</Link>
         </div>
       );

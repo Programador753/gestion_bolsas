@@ -62,7 +62,7 @@ export default function Header() {
 
         {/* Tooltip personalizado para Departamentos */}
         <div style={{ position: "relative", display: "inline-block" }}>
-          <a href="#" style={{ color: "white", textDecoration: "none" }}>
+          <a href="/pages/rutas/departamentos" style={{ color: "white", textDecoration: "none" }}>
             Departamentos
           </a>
         </div>
