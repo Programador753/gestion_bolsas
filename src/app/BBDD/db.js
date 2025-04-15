@@ -21,4 +21,6 @@ export const query = async (text, params) => {
     }
 };
 
+// This function is used to close the pool when the application is shutting down
+
 export default pool;
