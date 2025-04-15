@@ -18,9 +18,9 @@ export const query = async (text, params) => {
         throw err;
     } finally {
         client.release();
+        //erueruerueu
+        //erijfoejf
     }
 };
-
-// This function is used to close the pool when the application is shutting down
-
+// hola vamos a cambiar el puerto
 export default pool;
