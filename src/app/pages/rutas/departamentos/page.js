@@ -1,15 +1,6 @@
-//Es una ruta dinamica
+//Esta es la pagina que contiene el slug de la url para que pueda ser capturado por la ruta dinamica
+
 import React from "react";
-import Link from "next/link";
+import { getDepartamentos } from "@/app/api/functions/select";
+import styles from "./dbPrueba.module.css"
 
-export default function Bolsas() {
-
-    return (
-        <div>
-          <h1>Bolsas</h1>
-          <Link href="/bolsas/presupuesto">Bolsa Presupuesto</Link>
-          <br />
-          <Link href="/bolsas/inversion">Bolsa Inversion</Link>
-        </div>
-      );
-}
