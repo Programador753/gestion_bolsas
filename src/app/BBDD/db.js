@@ -19,6 +19,7 @@ export const query = async (text, params) => {
     } finally {
         client.release();
         //erueruerueu
+        //erijfoejf
     }
 };
 // hola vamos a cambiar el puerto
