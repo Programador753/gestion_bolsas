@@ -18,6 +18,7 @@ export const query = async (text, params) => {
         throw err;
     } finally {
         client.release();
+        //erueruerueu
     }
 };
 
