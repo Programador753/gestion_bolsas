@@ -21,5 +21,5 @@ export const query = async (text, params) => {
         //erueruerueu
     }
 };
-
+// hola vamos a cambiar el puerto
 export default pool;
