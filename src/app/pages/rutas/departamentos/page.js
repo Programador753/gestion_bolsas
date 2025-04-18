@@ -3,23 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { getDepartamentos } from "@/app/api/functions/select";
-import styles from "./dbPrueba.module.css"
 
 
 
 
-const departamentos = [
-  'Informática',
-  'Administración',
-  'Electricidad',
-  'Mecánica',
-  'Electrónica',
-  'Automoción',
-  'Construcción',
-  'Química',
-  'Sanidad',
-  'Hostelería'
-];
+const departamentos = await getDepartamentos().then((data) => data.map((item) => item.nombre)).catch((error) => console.error("Error fetching departamentos:", error));
+
 
 export default function DepartamentosPage() {
   return (
@@ -34,12 +23,14 @@ export default function DepartamentosPage() {
           </thead>
           <tbody>
             {departamentos.map((nombre, idx) => {
-              const slug = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+              // Convertir el nombre a un slug para la URL
+              const slug = nombre.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, ""); // Reemplaza espacios y caracteres especiales por guiones 
+              // Aquí puedes agregar la lógica para manejar el slug y redirigir a la página correspondiente
               return (
                 <tr key={idx}>
                   <td className="border px-4 py-2">{nombre}</td>
                   <td className="border px-4 py-2 text-center">
-                    <Link href={`/bolsas/${slug}`}>
+                    <Link href={`./bolsas/${slug}`}>
                       <button className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">
                         Ver bolsas
                       </button>
