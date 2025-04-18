@@ -23,9 +23,9 @@ export default function DepartamentosPage() {
           </thead>
           <tbody>
             {departamentos.map((nombre, idx) => {
-              // Convertir el nombre a un slug para la URL
-              const slug = nombre.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, ""); // Reemplaza espacios y caracteres especiales por guiones 
-              // Aquí puedes agregar la lógica para manejar el slug y redirigir a la página correspondiente
+              // Convertir el nombre a un slug para la URL pero conservando el nombre original para mostrarlo en la tabla
+              const slug = nombre;
+              
               return (
                 <tr key={idx}>
                   <td className="border px-4 py-2">{nombre}</td>
