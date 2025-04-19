@@ -1,9 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Header() {
   return (
     <header
-    className="bg-gradient-to-r from-[#db001b] to-[#b30017] text-white shadow-lg  "
+      className="bg-gradient-to-r from-[#db001b] to-[#b30017] text-white shadow-lg"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -22,7 +23,6 @@ export default function Header() {
         borderRadius: "0 0 10px 10px", // Bordes redondeados inferiores
         transition: "background-color 0.3s ease-in-out", // Transición suave para el color de fondo
       }}
-    
     >
       {/* Logo y título */}
       <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
@@ -50,26 +50,24 @@ export default function Header() {
           color: "white",
         }}
       >
-        <a href="./" style={{ color: "white", textDecoration: "none" }}>
+        <Link href="/" style={{ color: "white", textDecoration: "none" }}>
           Inicio
-        </a>
-        <a href="#" style={{ color: "white", textDecoration: "none" }}>
+        </Link>
+        <Link href="#" style={{ color: "white", textDecoration: "none" }}>
           Órdenes de Compra
-        </a>
-        <a href="#" style={{ color: "white", textDecoration: "none" }}>
+        </Link>
+        <Link href="/pages/rutas/bolsas" style={{ color: "white", textDecoration: "none" }}>
           Bolsas
-        </a>
-
+        </Link>
         {/* Tooltip personalizado para Departamentos */}
         <div style={{ position: "relative", display: "inline-block" }}>
-          <a href="/pages/rutas/departamentos" style={{ color: "white", textDecoration: "none" }}>
+          <Link href="/pages/rutas/departamentos" style={{ color: "white", textDecoration: "none" }}>
             Departamentos
-          </a>
+          </Link>
         </div>
-
-        <a href="#" style={{ color: "white", textDecoration: "none" }}>
+        <Link href="#" style={{ color: "white", textDecoration: "none" }}>
           Proveedores
-        </a>
+        </Link>
       </nav>
 
       {/* Imagen de perfil */}
@@ -81,7 +79,6 @@ export default function Header() {
           height={60}
           style={{ borderRadius: "50%" }}
           className="cursor-pointer"
-
         />
       </div>
     </header>
