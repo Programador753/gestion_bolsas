@@ -3,13 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const DepartamentoSelector = ({ departamentos, onSeleccion, departamentoActual = 'Todos' }) => {
+const DepartamentoSelector = ({ onSeleccion, departamentoActual = '' }) => {
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(departamentoActual);
 
   const handleChange = (e) => {
     const nuevoDepartamento = e.target.value;
     setDepartamentoSeleccionado(nuevoDepartamento);
-    if (onSeleccion) onSeleccion(nuevoDepartamento);
+    if (onSeleccion) {
+      onSeleccion(nuevoDepartamento.trim());
+    }
   };
 
   return (
@@ -20,40 +22,22 @@ const DepartamentoSelector = ({ departamentos, onSeleccion, departamentoActual =
           <p className="text-sm text-gray-700">Filtra los datos por departamento</p>
         </div>
         <div className="w-full md:w-64">
-          <select
-             className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+          <input
+            type="text"
+            className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
             value={departamentoSeleccionado}
             onChange={handleChange}
-          >
-            <option value="Todos">Todos los departamentos</option>
-            {departamentos.map((nombre, idx) => (
-              <option key={idx} value={nombre}>
-                {nombre}
-              </option>
-            ))}
-          </select>
+            placeholder="Escribe el nombre del departamento"
+          />
         </div>
       </div>
-
-      {departamentoSeleccionado !== 'Todos' && (
-        <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-md">
-          <div className="flex items-start gap-2">
-            <svg className="h-5 w-5 text-red-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM9 8a1 1 0 112 0 1 1 0 01-2 0zm1 2a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <p className="text-sm text-red-700">
-              Mostrando datos únicamente del departamento: <strong>{departamentoSeleccionado}</strong>
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default function DepartamentosPage() {
   const [departamentos, setDepartamentos] = useState([]);
-  const [departamentoFiltrado, setDepartamentoFiltrado] = useState('Todos');
+  const [departamentoFiltrado, setDepartamentoFiltrado] = useState('');
 
   useEffect(() => {
     fetch('/api/departamentos')
@@ -65,10 +49,17 @@ export default function DepartamentosPage() {
       .catch((error) => console.error("Error fetching departamentos:", error));
   }, []);
 
-  const departamentosMostrados =
-    departamentoFiltrado === 'Todos'
-      ? departamentos
-      : departamentos.filter((nombre) => nombre === departamentoFiltrado);
+  const normalizarTexto = (texto) =>
+    texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // Elimina acentos
+
+  const departamentosMostrados = departamentoFiltrado.trim()
+    ? departamentos.filter((nombre) =>
+        normalizarTexto(nombre).includes(normalizarTexto(departamentoFiltrado))
+      )
+    : departamentos;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center">
@@ -78,7 +69,6 @@ export default function DepartamentosPage() {
         </h1>
 
         <DepartamentoSelector
-          departamentos={departamentos}
           onSeleccion={setDepartamentoFiltrado}
           departamentoActual={departamentoFiltrado}
         />
@@ -104,8 +94,8 @@ export default function DepartamentosPage() {
                 </tr>
               )}
             </tbody>
-          </table>
-        </div>
+        </table>
+      </div>
       </main>
     </div>
   );
