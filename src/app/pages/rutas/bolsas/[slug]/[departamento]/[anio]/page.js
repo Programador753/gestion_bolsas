@@ -26,6 +26,7 @@ export default async function Page({ params }) {
                 <tr>
                   <th className="px-4 py-3 text-left">Código</th>
                   <th className="px-4 py-3 text-left">Tipo</th>
+                  <th className="px-4 py-3 text-left">Proveedor</th>
                   <th className="px-4 py-3 text-left">Fecha</th>
                   <th className="px-4 py-3 text-right">Gasto (€)</th>
                   <th className="px-4 py-3 text-left">Comentario</th>
@@ -39,6 +40,8 @@ export default async function Page({ params }) {
                   >
                     <td className="px-4 py-3">{orden.Codigo}</td>
                     <td className="px-4 py-3">{orden.Tipo}</td>
+                    <td className="px-4 py-3">{orden.nombre_proveedor}</td>
+
                     <td className="px-4 py-3">
                       {new Date(orden.Fecha).toLocaleDateString()}
                     </td>

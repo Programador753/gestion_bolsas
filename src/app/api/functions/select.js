@@ -84,12 +84,15 @@ export async function desgloseGastos(departamento, anio, tipoBolsa) {
 
     // Ejecutamos la consulta
     const [rows] = await pool.query(`
-      SELECT oc.*
+      SELECT 
+        oc.*,
+        p.nombre as nombre_proveedor
       FROM ORDEN_COMPRA oc
       JOIN ${joinTabla} rel ON oc.Id = rel.Id_OrderCompra
       JOIN ${tipoColumna} bolsa_tipo ON rel.${campoBolsa} = bolsa_tipo.Id
       JOIN BOLSA b ON bolsa_tipo.Id_Bolsa = b.Id
       JOIN DEPARTAMENTO d ON d.Id_Departamento = b.Id_Departamento
+      JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
       WHERE d.Nombre = ? AND b.Anio = ?
     `, [decodeURIComponent(departamento), anio]);
 
@@ -99,4 +102,3 @@ export async function desgloseGastos(departamento, anio, tipoBolsa) {
     throw error;
   }
 }
-
