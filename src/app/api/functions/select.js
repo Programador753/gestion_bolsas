@@ -54,7 +54,7 @@ export async function getBolsasByDepartamento(departamento) {
       LEFT JOIN B_PRESUPUESTO bp ON b.Id = bp.Id_Bolsa
       WHERE d.nombre = ?
       ORDER BY b.Anio DESC;
-    `, [departamento]);
+    `, [departamento]); // Usamos el nombre del departamento directamente en la consulta
     return rows;
   }
   catch (error) {
