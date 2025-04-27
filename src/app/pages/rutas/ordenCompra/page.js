@@ -81,7 +81,7 @@ export default function OrdenCompraPage() {
 
         <input type="text" name="numInv" value={formulario.numInv} onChange={handleChange} placeholder="Número de inventario (si aplica)" className="border p-2 w-full" />
 
-        <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Añadir</button>
+        <button type="submit" className="bg-red-600 text-black px-4 py-2 rounded">Añadir</button>
 
       </form>
     </div>
