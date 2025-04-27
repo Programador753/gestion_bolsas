@@ -53,7 +53,7 @@ export default function Header() {
         <Link href="/" style={{ color: "white", textDecoration: "none" }}>
           Inicio
         </Link>
-        <Link href="#" style={{ color: "white", textDecoration: "none" }}>
+        <Link href="/pages/rutas/ordenCompra" style={{ color: "white", textDecoration: "none" }}>
           Órdenes de Compra
         </Link>
         <Link href="/pages/rutas/bolsas" style={{ color: "white", textDecoration: "none" }}>

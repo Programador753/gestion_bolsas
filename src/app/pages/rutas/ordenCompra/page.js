@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import React from "react";
 import Link from "next/link";
 
-<Link href="/ordenCompra"></Link>
 
 export default function OrdenCompraPage() {
   const [formulario, setFormulario] = useState({
@@ -59,8 +58,8 @@ export default function OrdenCompraPage() {
   };
 
   return ( // Renderiza el formulario de orden de compra
-    <div className="p-8"> 
-      <h1 className="text-2xl mb-4">Crear Orden de Compra</h1> 
+    <div className="p-8 bg-white">  
+      <h1 className="text-2xl mb-4">Crear Orden de Compra</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4"> 
 
