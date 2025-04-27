@@ -59,7 +59,6 @@ export default function OrdenCompraPage() {
 
   return ( // Renderiza el formulario de orden de compra
     <div className="p-8 bg-white text-black rounded shadow-md">
-      <Link href="/rutas/ordenCompra" className="text-red-500 underline mb-4">Volver a Ordenes de Compra</Link>  
       <h1 className="text-2xl mb-4">Crear Orden de Compra</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4"> 
