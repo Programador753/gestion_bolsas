@@ -65,7 +65,7 @@ export default function Header() {
             Departamentos
           </Link>
         </div>
-        <Link href="#" style={{ color: "white", textDecoration: "none" }}>
+        <Link href="/pages/rutas/proveedores" style={{ color: "white", textDecoration: "none" }}>
           Proveedores
         </Link>
       </nav>

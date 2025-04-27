@@ -102,3 +102,13 @@ export async function desgloseGastos(departamento, anio, tipoBolsa) {
     throw error;
   }
 }
+
+export async function getProveedores() {
+  try {
+    const [rows] = await pool.query('SELECT * FROM proveedores');
+    return rows;
+  } catch (error) {
+    console.error('Error fetching departamentos:', error);
+    throw error;
+  }
+}
