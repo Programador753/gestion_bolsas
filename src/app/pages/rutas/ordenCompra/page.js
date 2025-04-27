@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import React from "react";
 import Link from "next/link";
 
+<Link href="/orden-compra"></Link>
+
 export default function OrdenCompraPage() {
   const [formulario, setFormulario] = useState({
     numOrdenCompra: '',
