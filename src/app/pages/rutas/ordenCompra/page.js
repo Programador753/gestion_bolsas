@@ -79,7 +79,7 @@ export default function OrdenCompraPage() {
 
         <textarea name="comentarios" value={formulario.comentarios} onChange={handleChange} placeholder="Comentarios" className="border p-2 w-full" rows={4}></textarea>
 
-        <input type="text" name="numInv" value={formulario.numInv} onChange={handleChange} placeholder="Número de inventario (si aplica)" className="border p-2 w-full" />
+        <input type="text" name="numInv" value={formulario.numInv} onChange={handleChange} placeholder="Número de inversion (si aplica)" className="border p-2 w-full" />
 
         <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Añadir</button>
 
