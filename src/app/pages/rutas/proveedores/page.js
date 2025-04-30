@@ -1,4 +1,18 @@
 import React from "react";
+import Link from 'next/link';
+
+const proveedores = [
+  "TechSupply Solutions",
+  "Office Materials Corp",
+  "ElectroComponents SA",
+  "MechaParts Industries",
+  "ElectroTech Systems",
+  "AutoParts Global",
+  "BuildCorp Materials",
+  "ChemSupplies Lab",
+  "MedicalEquip Pro",
+  "HospitalitySupply Co"
+];
 
 export default function ProveedoresPage() {
   return (
@@ -21,7 +35,7 @@ export default function ProveedoresPage() {
               <input
                 className="bg-white w-full p-2 text-sm md:text-base text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
                 type="text"
-              ></input>
+              />
             </div>
             <div className="flex justify-end">
               <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">
@@ -33,25 +47,25 @@ export default function ProveedoresPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
             <tbody>
-              <tr className="bg-white border-b hover:bg-gray-50 transition ">
-                <td>
-                  <p className="px-4 py-3 font-medium text-gray-800">
-                    TechSupply Solutions
-                  </p>
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-gray-600">
-                    Alta 
-                  </p>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end space-x-2">
-                    <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">
-                      Gestión
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              {proveedores.map((nombre, index) => (
+                <tr key={index} className="bg-white border-b hover:bg-gray-50 transition">
+                  <td>
+                    <p className="px-4 py-3 font-medium text-gray-800">{nombre}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-gray-600">Alta</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end space-x-2">
+                    <Link href={`/pages/rutas/gestion/${nombre}`}>
+                      <button className="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">
+                        Gestionar
+                      </button>
+                    </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
