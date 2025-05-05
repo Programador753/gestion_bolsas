@@ -1,10 +1,10 @@
+// src/app/layout.js
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import Header from "./components/Header/header";
 import Footer from "./components/Footer/footer";
-
-import { SessionProvider } from "next-auth/react";
+import { Providers } from "./providers"; // nuevo import
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,16 +21,15 @@ export const metadata = {
   description: "Gestion de Bolsas",
 };
 
+
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
-        <SessionProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </SessionProvider>
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
+
