@@ -1,3 +1,4 @@
+// Pagina de bolsas
 'use client';
 
 import React, { useEffect, useState } from "react";
@@ -109,14 +110,14 @@ export default function Bolsas() {
                 </td>
                 <td className="px-4 py-3 text-black">{bolsa.Tipo_Bolsa}</td>
                 <td className="px-4 py-3 text-center">
-                  <Link
-                    href={`/rutas/bolsas/${bolsa.Tipo_Bolsa}/${encodeURIComponent(
-                      bolsa.Departamento
-                    )}/${bolsa.Anio}`}
-                    className="inline-block bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition"
-                  >
-                    Ver detalles
-                  </Link>
+                <a
+                        href={`/pages/rutas/bolsas/${bolsa.Tipo_Bolsa}/${encodeURIComponent(
+                          bolsa.Departamento
+                        )}/${bolsa.Anio}`}
+                        className="inline-block bg-red-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition"
+                      >
+                        Ver detalles
+                      </a>
                 </td>
               </tr>
             ))
