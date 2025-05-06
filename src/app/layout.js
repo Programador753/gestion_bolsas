@@ -2,8 +2,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import Header from "./components/Header/header";
-import Footer from "./components/Footer/footer";
 import { Providers } from "./providers"; // nuevo import
 
 const geistSans = Geist({

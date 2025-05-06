@@ -72,14 +72,15 @@ export default function Header() {
 
       {/* Imagen de perfil */}
       <div>
-        <Image
-          src="/sdb-logo-big.png"
-          alt="Usuario"
-          width={60}
-          height={60}
-          style={{ borderRadius: "50%" }}
-          className="cursor-pointer"
-        />
+        <Link href="/pages/login" style={{ color: "white", textDecoration: "none" }}>
+          <Image
+            src="/sdb-logo-big.png"
+            alt="Usuario"
+            width={40}
+            height={40}
+            style={{ borderRadius: "50%" }}
+          />
+        </Link>
       </div>
     </header>
   );
