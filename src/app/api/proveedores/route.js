@@ -1,12 +1,10 @@
-// src/app/api/proveedores/route.js
-
-import { getProveedores } from '@/lib/database/functions'; // Asegúrate de que esta ruta sea válida
-
-export async function GET() {
+export async function getProveedores() {
   try {
-    const proveedores = await getProveedores();
-    return Response.json(proveedores);
+    const [rows] = await pool.query('SELECT * FROM proveedores');
+    console.log("Proveedores obtenidos:", rows); // Asegúrate de que se devuelvan datos aquí
+    return rows;
   } catch (error) {
-    return new Response('Error al obtener proveedores', { status: 500 });
+    console.error('Error fetching proveedores:', error);
+    throw error;
   }
 }

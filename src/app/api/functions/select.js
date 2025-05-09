@@ -103,15 +103,6 @@ export async function desgloseGastos(departamento, anio, tipoBolsa) {
   }
 }
 
-export async function getProveedores() {
-  try {
-    const [rows] = await pool.query('SELECT * FROM proveedores');
-    return rows;
-  } catch (error) {
-    console.error('Error fetching departamentos:', error);
-    throw error;
-  }
-}
 
 export async function getProveedores() {
   try {
@@ -123,15 +114,7 @@ export async function getProveedores() {
   }
 }
 
-export async function getProveedores() {
-  try {
-    const [rows] = await pool.query('SELECT * FROM proveedores');
-    return rows;
-  } catch (error) {
-    console.error('Error fetching departamentos:', error);
-    throw error;
-  }
-}
+
 
 export async function getOrdenCompra() {
   try {
@@ -148,3 +131,21 @@ export async function getOrdenCompra() {
     throw error;
   }
 }
+
+export async function guardarProveedoresDepartamentos(idProveedor, idsDepartamentos) {
+  try {
+    // Primero borramos asociaciones actuales del proveedor
+    await pool.query('DELETE FROM PROVEEDOR_DEPARTAMENTO WHERE Id_Proveedor = ?', [idProveedor]);
+
+    // Insertamos las nuevas
+    for (const idDep of idsDepartamentos) {
+      await pool.query('INSERT INTO PROVEEDOR_DEPARTAMENTO (Id_Proveedor, Id_Departamento) VALUES (?, ?)', [idProveedor, idDep]);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error guardando asociaciones proveedor-departamento:', error);
+    return { success: false, error };
+  }
+}
+
