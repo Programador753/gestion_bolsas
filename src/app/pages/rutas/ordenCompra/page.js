@@ -24,7 +24,7 @@ export default function OrdenCompraPage() {
     const [tipoProductos, setTipoProductos] = useState([]);
     const [numInv, setNumInv] = useState([]);
     const [ordenesCompra, setOrdenesCompra] = useState([]);
-  const [ordenCompra, setOrdenCompra] = useState(null);
+    const [ordenCompra, setOrdenCompra] = useState(null);
 
   const handleChange = (e) => { // Manejo de cambios en inputs
     const { name, value } = e.target; // Desestructuración del evento
