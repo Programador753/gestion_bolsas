@@ -112,3 +112,39 @@ export async function getProveedores() {
     throw error;
   }
 }
+
+export async function getProveedores() {
+  try {
+    const [rows] = await pool.query('SELECT * FROM proveedores');
+    return rows;
+  } catch (error) {
+    console.error('Error fetching departamentos:', error);
+    throw error;
+  }
+}
+
+export async function getProveedores() {
+  try {
+    const [rows] = await pool.query('SELECT * FROM proveedores');
+    return rows;
+  } catch (error) {
+    console.error('Error fetching departamentos:', error);
+    throw error;
+  }
+}
+
+export async function getOrdenCompra() {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        oc.*,
+        p.nombre as nombre_proveedor
+      FROM ORDEN_COMPRA oc
+      JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
+    `);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching ordenes de compra:', error);
+    throw error;
+  }
+}
