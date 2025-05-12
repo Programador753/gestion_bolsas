@@ -1,4 +1,4 @@
-import { pool } from '@/app/api/lib/db';
+  import { pool } from '@/app/api/lib/db';
 
 export async function getDepartamentos() {
   try {

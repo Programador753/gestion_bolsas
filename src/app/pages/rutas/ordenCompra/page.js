@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import React from "react";
 import Link from "next/link";
-import { getOrdenCompra } from "@/app/api/functions/select";
-
 
 export default function OrdenCompraPage() {
   const [formulario, setFormulario] = useState({
