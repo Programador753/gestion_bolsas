@@ -132,20 +132,19 @@ export async function getOrdenCompra() {
   }
 }
 
-export async function guardarProveedoresDepartamentos(idProveedor, idsDepartamentos) {
+export async function getDepartamentosDeProveedor(idProveedor) {
   try {
-    // Primero borramos asociaciones actuales del proveedor
-    await pool.query('DELETE FROM PROVEEDOR_DEPARTAMENTO WHERE Id_Proveedor = ?', [idProveedor]);
-
-    // Insertamos las nuevas
-    for (const idDep of idsDepartamentos) {
-      await pool.query('INSERT INTO PROVEEDOR_DEPARTAMENTO (Id_Proveedor, Id_Departamento) VALUES (?, ?)', [idProveedor, idDep]);
-    }
-
-    return { success: true };
+    const [rows] = await pool.query(`
+      SELECT Id_Departamento 
+      FROM PROVEEDOR_DEPARTAMENTO 
+      WHERE Id_Proveedor = ? 
+    `, [idProveedor]); // La '?' se reemplaza por el idProveedor al poner coma y el parámetro que recibe
+                      // O sea, como un forEach, pero en SQL
+    return rows.map(row => row.Id_Departamento);
   } catch (error) {
-    console.error('Error guardando asociaciones proveedor-departamento:', error);
-    return { success: false, error };
+    console.error('Error obteniendo departamentos del proveedor:', error);
+    throw error;
   }
 }
+
 
