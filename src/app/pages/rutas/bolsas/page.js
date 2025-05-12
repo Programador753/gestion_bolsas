@@ -9,6 +9,11 @@ export default function Bolsas() {
   const [filteredBolsas, setFilteredBolsas] = useState([]);
   const [searchDepartamento, setSearchDepartamento] = useState("");
   const [selectedAnio, setSelectedAnio] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [departamento, setDepartamento] = useState("");
+  const [anio, setAnio] = useState("");
+  const [monto, setMonto] = useState("");
+  const [tipoBolsa, setTipoBolsa] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,7 +86,110 @@ export default function Bolsas() {
         >
           Limpiar filtros
         </button>
+
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+        >
+          Añadir Bolsa
+        </button>
       </div>
+
+      {showForm && (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              const response = await fetch('/api/bolsas/add', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ departamento, anio, monto, tipoBolsa }),
+              });
+
+              if (response.ok) {
+                alert('Bolsa añadida exitosamente');
+                setShowForm(false);
+                setDepartamento('');
+                setAnio('');
+                setMonto('');
+                setTipoBolsa('');
+
+                // Refresh the bolsas list
+                const data = await response.json();
+                setBolsas((prev) => [...prev, { departamento, anio, monto, tipoBolsa }]);
+              } else {
+                alert('Error al añadir la bolsa (rutas/bolsas/page.js_1)');
+              }
+            } catch (error) {
+              console.error('Error submitting form:', error);
+              alert('Error al añadir la bolsa (rutas/bolsas/page.js_2)');
+            }
+          }}
+          className="bg-gray-100 p-4 rounded shadow-md mb-4"
+        >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Departamento</label>
+            <input
+              type="text"
+              value={departamento}
+              onChange={(e) => setDepartamento(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-2 w-full"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Año</label>
+            <select
+              value={anio}
+              onChange={(e) => setAnio(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-2 w-full"
+              required
+            >
+              <option value="">Seleccionar año</option>
+              {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Monto</label>
+            <input
+              type="number"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-2 w-full"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Tipo de Bolsa</label>
+            <select
+              value={tipoBolsa}
+              onChange={(e) => setTipoBolsa(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-2 w-full"
+              required
+            >
+              <option value="">Seleccionar tipo</option>
+              <option value="Inversion">Inversión</option>
+              <option value="Presupuesto">Presupuesto</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+          >
+            Guardar Bolsa
+          </button>
+        </form>
+      )}
 
       <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
         <thead className="bg-red-600 text-white">
