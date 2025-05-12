@@ -10,7 +10,7 @@ export async function GET(request) {
         const [presupuestoResult] = await pool.query('SELECT presupuesto_total FROM departamento WHERE id = 1');
 
         // Fetch gasto total
-        const [gastoResult] = await pool.query('SELECT SUM(monto) AS gasto_total FROM ordenes_compra');
+        const [gastoResult] = await pool.query('SELECT SUM(monto) AS gasto_total FROM orden_compra');
 
         return new Response(
             JSON.stringify({
