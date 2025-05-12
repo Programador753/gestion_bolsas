@@ -72,7 +72,7 @@ export default function Header() {
 
       {/* Imagen de perfil */}
       <div>
-        <Link href="/pages/login" style={{ color: "white", textDecoration: "none" }}>
+        <Link href="/pages/logout" style={{ color: "white", textDecoration: "none" }}>
           <Image
             src="/sdb-logo-big.png"
             alt="Usuario"
