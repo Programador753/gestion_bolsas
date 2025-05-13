@@ -167,4 +167,29 @@ export async function deleteDepartamento(nombre) {
   }
 }
 
+export async function addProveedor(nombre) {
+  try {
+    console.log('Insertando proveedor en la base de datos:', nombre); // Depuración
+    const [result] = await pool.query(
+      'INSERT INTO proveedores (nombre, estado) VALUES (?, ?)', 
+      [nombre, 0] // Estado por defecto = 0
+    );
+    console.log('Resultado de la inserción:', result); // Depuración
+    return { id: result.insertId, nombre, estado: 0 }; // Devuelve el id, nombre y estado
+  } catch (error) {
+    console.error('Error adding proveedor:', error);
+    throw error;
+  }
+}
+
+export async function deleteProveedor(nombre) {
+  try {
+    const [result] = await pool.query('DELETE FROM proveedores WHERE nombre = ?', [nombre]);
+    return result;
+  } catch (error) {
+    console.error('Error deleting proveedor:', error);
+    throw error;
+  }
+}
+
 
