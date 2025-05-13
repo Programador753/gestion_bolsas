@@ -14,7 +14,6 @@ const Logout = () => {
         <p className="mb-4">Bienvenido a la aplicación</p>
         <p className="mb-4">{`Usuario: ${session.user.name}`}</p>
         <p className="mb-4">{`Email: ${session.user.email}`}</p>
-        <p className="mb-4">{`ID: ${session.user.id}`}</p>
         <p className="mb-4">{`Rol: ${session.user.role}`}</p>
         <button 
           className="px-6 py-2 bg-red-500 text-white rounded-lg" 
