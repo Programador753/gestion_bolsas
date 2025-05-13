@@ -38,22 +38,74 @@ const DepartamentoSelector = ({ onSeleccion, departamentoActual = '' }) => {
 export default function DepartamentosPage() {
   const [departamentos, setDepartamentos] = useState([]);
   const [departamentoFiltrado, setDepartamentoFiltrado] = useState('');
+  const [nuevoDepartamento, setNuevoDepartamento] = useState('');
+  const [mensaje, setMensaje] = useState(''); // Estado para manejar los mensajes
+  const [tipoMensaje, setTipoMensaje] = useState(''); // Estado para el tipo de mensaje ('success' o 'error')
 
   useEffect(() => {
-    fetch('/api/departamentos')
-      .then((res) => res.json())
-      .then((data) => {
-        const nombres = data.map((item) => item.nombre);
-        setDepartamentos(nombres);
-      })
-      .catch((error) => console.error("Error fetching departamentos:", error));
+    fetchDepartamentos();
   }, []);
+
+  const fetchDepartamentos = async () => {
+    try {
+      const res = await fetch('/api/departamentos');
+      const data = await res.json();
+      const nombres = data.map((item) => item.nombre);
+      setDepartamentos(nombres);
+    } catch (error) {
+      console.error("Error fetching departamentos:", error);
+    }
+  };
 
   const normalizarTexto = (texto) =>
     texto
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, ''); // Elimina acentos
+
+  const handleEliminarDepartamento = async (nombre) => {
+    const confirmacion = window.confirm('¿Está seguro de eliminar el departamento?');
+    if (!confirmacion) return;
+
+    try {
+      await fetch(`/api/departamentos`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre }),
+      });
+      setDepartamentos(departamentos.filter((dep) => dep !== nombre));
+      setMensaje('Eliminado con éxito');
+      setTipoMensaje('success');
+    } catch (error) {
+      console.error("Error eliminando departamento:", error);
+      setMensaje('Error al eliminar el departamento');
+      setTipoMensaje('error');
+    } finally {
+      setTimeout(() => setMensaje(''), 3000); // Limpia el mensaje después de 3 segundos
+    }
+  };
+
+  const handleAgregarDepartamento = async () => {
+    if (!nuevoDepartamento.trim()) return;
+
+    try {
+      await fetch(`/api/departamentos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: nuevoDepartamento.trim() }),
+      });
+      setDepartamentos([...departamentos, nuevoDepartamento.trim()]);
+      setNuevoDepartamento('');
+      setMensaje('Añadido correctamente');
+      setTipoMensaje('success');
+    } catch (error) {
+      console.error("Error agregando departamento:", error);
+      setMensaje('Error al añadir el departamento');
+      setTipoMensaje('error');
+    } finally {
+      setTimeout(() => setMensaje(''), 3000); // Limpia el mensaje después de 3 segundos
+    }
+  };
 
   const departamentosMostrados = departamentoFiltrado.trim()
     ? departamentos.filter((nombre) =>
@@ -62,7 +114,18 @@ export default function DepartamentosPage() {
     : departamentos;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center relative">
+      {/* Pop-up flotante */}
+      {mensaje && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${
+            tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {mensaje}
+        </div>
+      )}
+
       <main className="flex-grow px-4 py-10 w-full max-w-3xl">
         <h1 className="text-center text-3xl font-extrabold text-red-700 mb-8">
           Lista de departamentos
@@ -73,6 +136,22 @@ export default function DepartamentosPage() {
           departamentoActual={departamentoFiltrado}
         />
 
+        <div className="mb-6">
+          <input
+            type="text"
+            className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+            value={nuevoDepartamento}
+            onChange={(e) => setNuevoDepartamento(e.target.value)}
+            placeholder="Añadir nuevo departamento"
+          />
+          <button
+            onClick={handleAgregarDepartamento}
+            className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
+          >
+            Añadir Departamento
+          </button>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
             <tbody>
@@ -81,21 +160,29 @@ export default function DepartamentosPage() {
                   <td className="px-4 py-3 font-medium text-gray-800">{nombre}</td>
                   <td className="px-4 py-3 text-center">
                     <Link href={`./bolsas/${nombre}`}>
-                      <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-md transition">
+                      <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer">
                         Ver bolsas
                       </button>
                     </Link>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleEliminarDepartamento(nombre)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}
               {departamentosMostrados.length === 0 && (
                 <tr>
-                  <td colSpan="2" className="text-center py-6 text-gray-500">No hay departamentos que coincidan.</td>
+                  <td colSpan="3" className="text-center py-6 text-gray-500">No hay departamentos que coincidan.</td>
                 </tr>
               )}
             </tbody>
-        </table>
-      </div>
+          </table>
+        </div>
       </main>
     </div>
   );

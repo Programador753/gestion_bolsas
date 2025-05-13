@@ -48,6 +48,7 @@ export default async function GestionPage({ params }) {
                   type="checkbox"
                   className="h-5 w-5 text-red-600 accent-red-600 cursor-pointer"
                   defaultChecked={departamentosRelacionados.includes(dep.Id_Departamento)}
+                  //Marca el checkbox del departamento que está relacionado
                 />
 
               </div>

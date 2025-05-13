@@ -147,4 +147,24 @@ export async function getDepartamentosDeProveedor(idProveedor) {
   }
 }
 
+export async function addDepartamento(nombre) {
+  try {
+    const [result] = await pool.query('INSERT INTO departamento (nombre) VALUES (?)', [nombre]);
+    return result;
+  } catch (error) {
+    console.error('Error adding departamento:', error);
+    throw error;
+  }
+}
+
+export async function deleteDepartamento(nombre) {
+  try {
+    const [result] = await pool.query('DELETE FROM departamento WHERE nombre = ?', [nombre]);
+    return result;
+  } catch (error) {
+    console.error('Error deleting departamento:', error);
+    throw error;
+  }
+}
+
 
