@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 
 export default function GestionPage() {
   const params = useParams(); // 👈 obtiene los parámetros de la URL
-
   const nombre = decodeURIComponent(params?.gestion || ""); // Evita errores si no está definido
   const [proveedor, setProveedor] = useState(null);
   const [departamentos, setDepartamentos] = useState([]);

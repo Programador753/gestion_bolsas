@@ -5,8 +5,9 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
+
 export default function Bolsas() {
-  const { data: session } = useSession();
+  const { data: session } = useSession(); // Usar el hook useSession
   const [bolsas, setBolsas] = useState([]);
   const [filteredBolsas, setFilteredBolsas] = useState([]);
   const [searchDepartamento, setSearchDepartamento] = useState("");
@@ -35,6 +36,7 @@ export default function Bolsas() {
   }, []);
 
   useEffect(() => {
+    
     let filtered = bolsas;
 
     if (searchDepartamento) {
@@ -47,7 +49,7 @@ export default function Bolsas() {
       filtered = filtered.filter((bolsa) => bolsa.Anio.toString() === selectedAnio);
     }
 
-    if (session?.user?.rol !== "Administrador") {
+    if (session?.user?.role !== "Administrador") {
       document.getElementById("addBolsa").style.display = "none";
     }
 
