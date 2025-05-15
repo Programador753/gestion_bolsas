@@ -48,13 +48,14 @@ export const authOptions = {
       if (user?.email) {
         try {
           const [rows] = await pool.query(
-            "SELECT Id_Usuario, rol FROM USUARIO WHERE email = ?",
+            "SELECT Id_Usuario, rol, DEPARTAMENTO.nombre AS departamento FROM USUARIO, DEPARTAMENTO WHERE USUARIO.Id_Departamento = DEPARTAMENTO.Id_Departamento AND email = ?",
             [user.email]
           );
           const dbUser = rows[0];
           if (dbUser) {
             token.id = dbUser.Id_Usuario;
             token.role = dbUser.rol;
+            token.departamento = dbUser.departamento;
           }
         } catch (err) {
           console.error("❌ Error al obtener datos del usuario:", err);
@@ -69,11 +70,12 @@ export const authOptions = {
       session.user.email = token.email;
       session.user.name = token.name;
       session.user.image = token.image;
+      session.user.departamento = token.departamento;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(authOptions);  
 export { handler as GET, handler as POST };
