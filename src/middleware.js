@@ -16,9 +16,10 @@ export default async function middleware(req) {
   const isLoginPage = pathname === "/pages/login"; // Ruta de login
   const isStaticFile = pathname.startsWith("/_next/"); // Archivos estáticos
   const isApiRoute = pathname.startsWith("/api/"); // Rutas de API
+   const isPublicImage = pathname.startsWith("/logoSalesianosWeb.png") || pathname.startsWith("/images/"); // Ejemplo imágenes en public
 
   // Si no hay token y no estás en las rutas de autenticación, login, archivos estáticos o API, redirige a login
-  if (!token && !isAuthRoute && !isLoginPage && !isStaticFile && !isApiRoute) {
+  if (!token && !isAuthRoute && !isLoginPage && !isStaticFile && !isApiRoute && !isPublicImage) {
     console.log("Redirigiendo a /pages/login porque no hay token");
     return NextResponse.redirect(new URL("/pages/login", req.url));
   }
