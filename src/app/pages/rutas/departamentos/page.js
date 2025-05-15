@@ -1,5 +1,5 @@
 'use client';
-
+import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -41,6 +41,8 @@ export default function DepartamentosPage() {
   const [nuevoDepartamento, setNuevoDepartamento] = useState('');
   const [mensaje, setMensaje] = useState(''); // Estado para manejar los mensajes
   const [tipoMensaje, setTipoMensaje] = useState(''); // Estado para el tipo de mensaje ('success' o 'error')
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetchDepartamentos();
@@ -94,33 +96,39 @@ export default function DepartamentosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: nuevoDepartamento.trim() }),
       });
-      setDepartamentos([...departamentos, nuevoDepartamento.trim()]);
       setNuevoDepartamento('');
       setMensaje('Añadido correctamente');
       setTipoMensaje('success');
+      await fetchDepartamentos(); // <-- Recarga la lista desde el backend
     } catch (error) {
       console.error("Error agregando departamento:", error);
       setMensaje('Error al añadir el departamento');
       setTipoMensaje('error');
     } finally {
-      setTimeout(() => setMensaje(''), 3000); // Limpia el mensaje después de 3 segundos
+      setTimeout(() => setMensaje(''), 3000);
     }
   };
 
-  const departamentosMostrados = departamentoFiltrado.trim()
-    ? departamentos.filter((nombre) =>
-        normalizarTexto(nombre).includes(normalizarTexto(departamentoFiltrado))
-      )
-    : departamentos;
+  // Lógica para mostrar solo el departamento propio si es Jefe de Departamento
+  let departamentosMostrados = departamentos;
+  if (
+    session?.user?.role === "Jefe_Departamento" &&
+    session.user.departamento
+  ) {
+    departamentosMostrados = [session.user.departamento];
+  } else if (departamentoFiltrado.trim()) {
+    departamentosMostrados = departamentos.filter((nombre) =>
+      normalizarTexto(nombre).includes(normalizarTexto(departamentoFiltrado))
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center relative">
       {/* Pop-up flotante */}
       {mensaje && (
         <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${
-            tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
-          }`}
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`}
         >
           {mensaje}
         </div>
@@ -131,26 +139,30 @@ export default function DepartamentosPage() {
           Lista de departamentos
         </h1>
 
-        <DepartamentoSelector
-          onSeleccion={setDepartamentoFiltrado}
-          departamentoActual={departamentoFiltrado}
-        />
-
-        <div className="mb-6">
-          <input
-            type="text"
-            className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
-            value={nuevoDepartamento}
-            onChange={(e) => setNuevoDepartamento(e.target.value)}
-            placeholder="Añadir nuevo departamento"
-          />
-          <button
-            onClick={handleAgregarDepartamento}
-            className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
-          >
-            Añadir Departamento
-          </button>
-        </div>
+        {/* Solo mostrar el selector y el input si NO es jefe */}
+        {session?.user?.role !== "Jefe_Departamento" && (
+          <>
+            <DepartamentoSelector
+              onSeleccion={setDepartamentoFiltrado}
+              departamentoActual={departamentoFiltrado}
+            />
+            <div className="mb-6">
+              <input
+                type="text"
+                className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                value={nuevoDepartamento}
+                onChange={(e) => setNuevoDepartamento(e.target.value)}
+                placeholder="Añadir nuevo departamento"
+              />
+              <button
+                onClick={handleAgregarDepartamento}
+                className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
+              >
+                Añadir Departamento
+              </button>
+            </div>
+          </>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
@@ -158,20 +170,23 @@ export default function DepartamentosPage() {
               {departamentosMostrados.map((nombre, idx) => (
                 <tr key={idx} className="bg-white border-b hover:bg-gray-50 transition">
                   <td className="px-4 py-3 font-medium text-gray-800">{nombre}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Link href={`./bolsas/${nombre}`}>
-                      <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer">
-                        Ver bolsas
-                      </button>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleEliminarDepartamento(nombre)}
-                      className="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
+                  <td className="px-4 py-3 text-right" colSpan={2}>
+                    <div className="flex justify-end gap-4">
+                      <Link href={`./bolsas/${nombre}`}>
+                        <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer">
+                          Ver bolsas
+                        </button>
+                      </Link>
+                      {/* Solo mostrar eliminar si NO es jefe */}
+                      {session?.user?.role !== "Jefe_Departamento" && (
+                        <button
+                          onClick={() => handleEliminarDepartamento(nombre)}
+                          className="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer"
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
