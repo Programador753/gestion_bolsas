@@ -47,7 +47,7 @@ export async function GET(req) {
     `;
     let params = [];
 
-    if (usuario.rol === "Jefe_Departamento") {
+    if (usuario.rol === "Jefe_Departamento" || usuario.rol === "Administrador") {
       query += " WHERE u.Id_Departamento = ?";
       params.push(usuario.Id_Departamento);
     }
@@ -163,3 +163,5 @@ export async function GET_PROVEEDORES(req) {
     return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
   }
 }
+
+  
