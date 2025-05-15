@@ -3,30 +3,30 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { pool } from '@/app/api/lib/db';
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
-          prompt: "consent", // Para que necesite consentimiento cada vez
-          access_type: "offline", // Para obtener un refresh token  
-          response_type: "code", // Para obtener un código de autorización
-          include_granted_scopes: false, // Para no incluir los scopes ya concedidos (scopes es la información que se solicita al usuario)
-          hd: "", // Para restringir el acceso a un dominio específico (ejemplo: salesianos.edu)
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          include_granted_scopes: false,
+          hd: "",
         },
       },
     }),
   ],
   pages: {
-    signIn: "/pages/login", // Ruta personalizada para la página de inicio de sesión
+    signIn: "/pages/login",
   },
   session: {
-    strategy: "jwt", // Usar JWT para la sesión
+    strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user }) { 
+    async signIn({ user }) {
       try {
         const [rows] = await pool.query(
           "SELECT * FROM USUARIO WHERE email = ?",
@@ -35,9 +35,9 @@ const handler = NextAuth({
 
         if (rows.length === 0) {
           console.log("❌ Usuario no autorizado:", user.email);
-          return false; // ❌ Deniega acceso
+          return false;
         }
-        return true; // ✅ Usuario autorizado
+        return true;
       } catch (err) {
         console.error("❌ Error al buscar el usuario:", err);
         return false;
@@ -51,30 +51,29 @@ const handler = NextAuth({
             "SELECT Id_Usuario, rol FROM USUARIO WHERE email = ?",
             [user.email]
           );
-          // Si el usuario existe en la base de datos, asigna su ID y rol al token 
           const dbUser = rows[0];
           if (dbUser) {
-            token.id = dbUser.Id_Usuario; 
-            token.role = dbUser.rol; // Puede ser 'Administrador', 'Contable', 'Jefe_Departamento'.
+            token.id = dbUser.Id_Usuario;
+            token.role = dbUser.rol;
           }
         } catch (err) {
           console.error("❌ Error al obtener datos del usuario:", err);
         }
       }
-
       return token;
     },
 
     async session({ session, token }) {
-      session.user.id = token.id; // Asigna el ID del usuario al objeto de sesión
-      session.user.role = token.role; // Asigna el rol del usuario al objeto de sesión
-      session.user.email = token.email; // Asigna el email del usuario al objeto de sesión
-      session.user.name = token.name; // Asigna el nombre del usuario al objeto de sesión
-      session.user.image = token.image; // Asigna la imagen del usuario al objeto de sesión
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.email = token.email;
+      session.user.name = token.name;
+      session.user.image = token.image;
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET, // Clave secreta para firmar el JWT
-});
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
-export { handler as GET, handler as POST }; // Exporta el handler para las rutas GET y POST
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
