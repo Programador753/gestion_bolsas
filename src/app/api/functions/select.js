@@ -147,7 +147,6 @@ export async function getDepartamentosDeProveedor(idProveedor) {
   }
 }
 
-<<<<<<< Updated upstream
 export async function addDepartamento(nombre) {
   try {
     const [result] = await pool.query('INSERT INTO departamento (nombre) VALUES (?)', [nombre]);
@@ -193,12 +192,10 @@ export async function deleteProveedor(nombre) {
   }
 }
 
-=======
 export async function getAnio(userId) {
     try {
         // Fetch año using a parameterized query
         const [rows] = await pool.query('SELECT Anio FROM bolsa WHERE Id_Departamento = ?', [userId]);
->>>>>>> Stashed changes
 
         return {
             anio: rows[0]?.Anio || 'Desconocido',
