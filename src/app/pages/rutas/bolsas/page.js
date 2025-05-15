@@ -3,8 +3,10 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function Bolsas() {
+  const { data: session } = useSession();
   const [bolsas, setBolsas] = useState([]);
   const [filteredBolsas, setFilteredBolsas] = useState([]);
   const [searchDepartamento, setSearchDepartamento] = useState("");
@@ -14,7 +16,6 @@ export default function Bolsas() {
   const [anio, setAnio] = useState("");
   const [monto, setMonto] = useState("");
   const [tipoBolsa, setTipoBolsa] = useState("");
-  const [departamentos, setDepartamentos] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,21 +35,6 @@ export default function Bolsas() {
   }, []);
 
   useEffect(() => {
-    const fetchDepartamentos = async () => {
-      try {
-        const response = await fetch('/api/departamentos'); // Llamada al endpoint API para obtener departamentos
-        const data = await response.json();
-        setDepartamentos(Array.isArray(data) ? data : []); // Aseguramos que departamentos sea un array
-      } catch (error) {
-        console.error('Error fetching departamentos:', error);
-        setDepartamentos([]); // En caso de error, inicializamos como array vacío
-      }
-    };
-
-    fetchDepartamentos();
-  }, []);
-
-  useEffect(() => {
     let filtered = bolsas;
 
     if (searchDepartamento) {
@@ -61,8 +47,12 @@ export default function Bolsas() {
       filtered = filtered.filter((bolsa) => bolsa.Anio.toString() === selectedAnio);
     }
 
+    if (session?.user?.rol !== "Administrador") {
+      document.getElementById("addBolsa").style.display = "none";
+    }
+
     setFilteredBolsas(filtered);
-  }, [searchDepartamento, selectedAnio, bolsas]);
+  }, [searchDepartamento, selectedAnio, bolsas, session]);
 
   const uniqueAnios = [...new Set(bolsas.map((bolsa) => bolsa.Anio))];
 
@@ -78,9 +68,9 @@ export default function Bolsas() {
           className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/2"
         >
           <option value="">Seleccionar departamento</option>
-          {departamentos.map((dep, idx) => (
-            <option key={idx} value={dep.nombre}>
-              {dep.nombre}
+          {bolsas.map((bolsa, idx) => (
+            <option key={idx} value={bolsa.Departamento}>
+              {bolsa.Departamento}
             </option>
           ))}
         </select>
@@ -108,7 +98,7 @@ export default function Bolsas() {
           Limpiar filtros
         </button>
 
-        <button
+        <button id = "addBolsa"
           onClick={() => setShowForm(!showForm)}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
         >
@@ -159,9 +149,9 @@ export default function Bolsas() {
               required
             >
               <option value="">Seleccionar departamento</option>
-              {departamentos.map((dep, idx) => (
-                <option key={idx} value={dep.nombre}>
-                  {dep.nombre}
+              {bolsas.map((bolsa, idx) => (
+                <option key={idx} value={bolsa.Departamento}>
+                  {bolsa.Departamento}
                 </option>
               ))}
             </select>
