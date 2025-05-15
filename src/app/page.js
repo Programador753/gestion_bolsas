@@ -5,10 +5,9 @@ import styles from './InicioPage.module.css';
 
 const InicioPage = () => {
     const [ordenes, setOrdenes] = useState([]);
-    const [presupuesto, setPresupuesto] = useState(0);
-    const [gasto, setGasto] = useState(0);
-    const [departamento, setDepartamento] = useState('');
-    const [anio, setAnio] = useState('');
+    const [gastoPorDepartamento, setGastoPorDepartamento] = useState([]);
+    const [presupuestoPorDepartamento, setPresupuestoPorDepartamento] = useState([]);
+    const [searchDepartamento, setSearchDepartamento] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -16,61 +15,160 @@ const InicioPage = () => {
                 const response = await fetch('/api/Inicio_data');
                 const data = await response.json();
 
-                setOrdenes(data.ordenes);
-                setPresupuesto(data.presupuesto);
-                setGasto(data.gasto);
-                setDepartamento(data.departamento);
-                setAnio(data.anio);
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    setOrdenes([]);
+                    setGastoPorDepartamento([]);
+                    setPresupuestoPorDepartamento([]);
+                    return;
+                }
+
+                console.log('Datos devueltos por la API:', data); // Log para depuración
+
+                // Logs adicionales para inspeccionar las propiedades de los datos
+                console.log('Ordenes:', data.ordenes);
+                console.log('Gasto por Departamento:', data.gasto);
+                console.log('Presupuesto por Departamento:', data.presupuesto);
+
+                setOrdenes(data.ordenes || []);
+                setGastoPorDepartamento(data.gasto || []);
+                setPresupuestoPorDepartamento(data.presupuesto || []);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                setOrdenes([]);
+                setGastoPorDepartamento([]);
+                setPresupuestoPorDepartamento([]);
             }
         };
 
         fetchData();
     }, []);
 
-    return (
-        <div className={styles.container}>
-            <h1 className={styles.title}>Bienvenido a la Gestión de Bolsas</h1>
-            <p className={styles.subtitle}>Esta es la página de inicio de la aplicación.</p>
+    const filteredGasto = searchDepartamento.trim() === "" ? gastoPorDepartamento : gastoPorDepartamento.filter(item =>
+        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
+    );
 
-            {/* Departamento y Año */}
-            <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Departamento y Año</h2>
-                <p className={styles.text}>{departamento} - {anio}</p>
+    const filteredPresupuesto = searchDepartamento.trim() === "" ? presupuestoPorDepartamento : presupuestoPorDepartamento.filter(item =>
+        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
+    );
+
+    console.log('Filtered Gasto:', filteredGasto);
+    console.log('Filtered Presupuesto:', filteredPresupuesto);
+    console.log('Ordenes:', ordenes);
+
+    return (
+        <div className="container mx-auto p-4">
+            <h1 className="text-2xl font-bold mb-4 text-center text-red-600">Inicio</h1>
+            <p className="mb-4">Bienvenido a la Gestión de Bolsas</p>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <input
+                    type="text"
+                    placeholder="Buscar por departamento"
+                    value={searchDepartamento}
+                    onChange={(e) => setSearchDepartamento(e.target.value)}
+                    className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/2"
+                />
             </div>
 
-            {/* Últimas órdenes de compra */}
-            <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Últimas Órdenes de Compra</h2>
-                <table className={styles.table}>
-                    <thead className={styles.tableHeaderRed}>
+            <div>
+                <h2 className="text-xl font-semibold mb-2">Presupuesto Total por Departamento</h2>
+                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                    <thead className="bg-red-600 text-white">
                         <tr>
-                            <th style={{ textAlign: 'left', paddingRight: '20px' }}>Descripción</th>
-                            <th style={{ textAlign: 'right' }}>Gasto (€)</th>
+                            <th className="px-4 py-2 text-left">Departamento</th>
+                            <th className="px-4 py-2 text-right">Presupuesto Total (€)</th>
+                            <th className="px-4 py-2 text-left">Tipo</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {(ordenes || []).map((orden, index) => (
-                            <tr key={index} className={index % 2 === 0 ? styles.evenRow : styles.oddRow}>
-                                <td style={{ textAlign: 'left', paddingRight: '20px' }}>{orden.descripcion}</td>
-                                <td style={{ textAlign: 'right' }}>{orden.gasto}</td>
+                        {filteredPresupuesto.length > 0 ? (
+                            filteredPresupuesto.map((item, idx) => (
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
+                                    <td className="px-4 py-3 text-black">{item.departamento}</td>
+                                    <td className="px-4 py-3 text-right font-medium text-black">{item.presupuesto_total}</td>
+                                    <td className="px-4 py-3 text-black">{item.tipo}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="3" className="text-center py-6 text-gray-500">
+                                    No hay datos disponibles.
+                                </td>
                             </tr>
-                        ))}
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            <br></br>
+            <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">Gasto Total por Departamento</h2>
+                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                    <thead className="bg-red-600 text-white">
+                        <tr>
+                            <th className="px-4 py-2 text-left">Departamento</th>
+                            <th className="px-4 py-2 text-right">Gasto Total (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredGasto.length > 0 ? (
+                            filteredGasto.map((item, idx) => (
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
+                                    <td className="px-4 py-3 text-black">{item.departamento}</td>
+                                    <td className="px-4 py-3 text-right font-medium text-black">{item.gasto_total}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="2" className="text-center py-6 text-gray-500">
+                                    No hay datos disponibles.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>
 
-            {/* Presupuesto total del departamento */}
-            <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Presupuesto Total del Departamento</h2>
-                <p className={styles.text}>Monto: ${presupuesto?.Monto || 0} - Tipo: {presupuesto?.Tipo_Bolsa || 'Sin Asignar'}</p>
-            </div>
+            <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">Últimas Órdenes de Compra</h2>
+                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                    <thead className="bg-red-600 text-white">
+                        <tr>
+                            <th className="px-4 py-2 text-left">Departamento</th>
+                            <th className="px-4 py-2 text-left">Nombre del Proveedor</th>
+                            <th className="px-4 py-2 text-right">Gasto (€)</th>
+                            <th className="px-4 py-2 text-left">Fecha</th>
+                            <th className="px-4 py-2 text-left">Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ordenes.length > 0 ? (
+                            ordenes.map((orden, idx) => {
+                                const departamento = orden.departamento || 'Sin Departamento';
+                                const nombreProveedor = orden.nombre_proveedor || 'Sin Proveedor';
+                                const gasto = orden.gasto !== undefined ? orden.gasto : 'N/A';
+                                const fecha = orden.fecha ? new Date(orden.fecha).toLocaleDateString() : 'Sin Fecha';
+                                const tipo = orden.tipo || 'Sin Tipo';
 
-            {/* Gasto total del departamento */}
-            <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Gasto Total del Departamento</h2>
-                <p className={styles.text}>${gasto}</p>
+                                return (
+                                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
+                                        <td className="px-4 py-3 text-black">{departamento}</td>
+                                        <td className="px-4 py-3 text-black">{nombreProveedor}</td>
+                                        <td className="px-4 py-3 text-right font-medium text-black">{gasto}</td>
+                                        <td className="px-4 py-3 text-black">{fecha}</td>
+                                        <td className="px-4 py-3 text-black">{tipo}</td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="text-center py-6 text-gray-500">
+                                    No hay órdenes de compra disponibles.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

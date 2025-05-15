@@ -1,62 +1,79 @@
 import { pool } from '@/app/api/lib/db';
-import { getDepartamentoAnio } from './getDepartamentoAnio';
+import { getDepartamentos, getBolsas, getOrdenCompra, getLastOrdenCompra } from '../functions/select';
 
 export async function GET(request) {
     try {
-        console.log("Iniciando solicitud GET en /api/Inicio_data");
+        console.log('Fetching departamentos...');
+        const departamentos = await getDepartamentos();
+        console.log('Departamentos:', departamentos);
 
-        const { departamento, anio } = await getDepartamentoAnio();
-        console.log("Datos obtenidos de getDepartamentoAnio:", { departamento, anio });
+        console.log('Fetching bolsas...');
+        const bolsas = await getBolsas();
+        console.log('Bolsas:', bolsas);
 
-        // Fetch últimas órdenes de compra
-        const [ordenesResult] = await pool.query('SELECT fecha, tipo, gasto FROM orden_compra ORDER BY fecha DESC LIMIT 3');
-        console.log("Últimas órdenes de compra:", ordenesResult);
-
-        // Fetch presupuesto total
-        const [presupuestoResult] = await pool.query(`
-        SELECT
-            b.Inicial AS Monto,
-            CASE
-            WHEN bi.Id IS NOT NULL THEN 'Inversión'
-            WHEN bp.Id IS NOT NULL THEN 'Presupuesto'
-            ELSE 'Sin Asignar'
-            END AS Tipo_Bolsa
-        FROM DEPARTAMENTO d
-        LEFT JOIN BOLSA b ON d.Id_Departamento = b.Id_Departamento
-        LEFT JOIN B_INVERSION bi ON b.Id = bi.Id_Bolsa
-        LEFT JOIN B_PRESUPUESTO bp ON b.Id = bp.Id_Bolsa
-        WHERE b.Anio = ${anio} AND d.Id_Departamento = 1
-        ORDER BY b.Anio DESC;
+        console.log('Fetching ordenesCompra...');
+        const ordenesCompra = await pool.query(`
+            SELECT 
+                oc.Id AS id,
+                oc.Codigo AS codigo,
+                d.Nombre AS departamento,
+                p.Nombre AS nombre_proveedor,
+                oc.Gasto AS gasto,
+                oc.Fecha AS fecha,
+                CASE
+                    WHEN bi.Id IS NOT NULL THEN 'Inversión'
+                    WHEN bp.Id IS NOT NULL THEN 'Presupuesto'
+                    ELSE 'Sin Tipo'
+                END AS tipo
+            FROM ORDEN_COMPRA oc
+            LEFT JOIN USUARIO u ON oc.Id_Usuario = u.Id_Usuario
+            LEFT JOIN DEPARTAMENTO d ON u.Id_Departamento = d.Id_Departamento
+            LEFT JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
+            LEFT JOIN OC_INVERSION oci ON oc.Id = oci.Id_OrderCompra
+            LEFT JOIN B_INVERSION bi ON oci.Id_Binversion = bi.Id
+            LEFT JOIN OC_PRESUPUESTO ocp ON oc.Id = ocp.Id_OrderCompra
+            LEFT JOIN B_PRESUPUESTO bp ON ocp.Id_B_Presupuesto = bp.Id;
         `);
-        console.log("Presupuesto total:", presupuestoResult);
+        console.log('OrdenesCompra:', ordenesCompra[0]);
 
-        // Fetch gasto total - NO TERMINADO
-        const [gastoResult] = await pool.query('SELECT COALESCE(SUM(gasto), 0) AS gasto_total FROM orden_compra');
-        console.log("Gasto total:", gastoResult);
+        console.log('Fetching gastoPorDepartamento...');
+        const [gastoRows] = await pool.query(`
+            SELECT SUM(ORDEN_COMPRA.Gasto) AS gasto_total, DEPARTAMENTO.Nombre AS departamento
+            FROM ORDEN_COMPRA
+            JOIN USUARIO ON ORDEN_COMPRA.Id_Usuario = USUARIO.Id_Usuario
+            JOIN DEPARTAMENTO ON USUARIO.Id_Departamento = DEPARTAMENTO.Id_Departamento
+            GROUP BY DEPARTAMENTO.Id_Departamento;
+        `);
+        console.log('GastoPorDepartamento:', gastoRows);
 
-        console.log("Datos enviados a la respuesta:", {
-            departamento,
-            anio,
-            ordenes: ordenesResult,
-            presupuesto: presupuestoResult,
-            gasto: gastoResult[0].gasto_total,
-        });
+        console.log('Fetching presupuestoPorDepartamento...');
+        const [presupuestoRows] = await pool.query(`
+            SELECT SUM(b.Inicial) AS presupuesto_total, d.Nombre AS departamento,
+                CASE
+                    WHEN bi.Id IS NOT NULL THEN 'Inversión'
+                    WHEN bp.Id IS NOT NULL THEN 'Presupuesto'
+                    ELSE 'Sin Asignar'
+                END AS tipo
+            FROM BOLSA b
+            JOIN DEPARTAMENTO d ON b.Id_Departamento = d.Id_Departamento
+            LEFT JOIN B_INVERSION bi ON b.Id = bi.Id_Bolsa
+            LEFT JOIN B_PRESUPUESTO bp ON b.Id = bp.Id_Bolsa
+            GROUP BY d.Id_Departamento, tipo;
+        `);
+        console.log('PresupuestoPorDepartamento:', presupuestoRows);
 
-        return new Response(
-            JSON.stringify({
-                departamento,
-                anio,
-                ordenes: ordenesResult,
-                presupuesto: presupuestoResult,
-                gasto: gastoResult[0].gasto_total,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } }
-        );
+        const response = {
+            departamento: departamentos.length > 0 ? departamentos[0].nombre : '',
+            anio: bolsas.length > 0 ? bolsas[0].Anio : '',
+            presupuesto: presupuestoRows,
+            ordenes: ordenesCompra[0],
+            gasto: gastoRows,
+        };
+
+        return new Response(JSON.stringify(response), { status: 200 });
+        
     } catch (error) {
-        console.error('Error fetching data:', error);
-        return new Response(
-            JSON.stringify({ error: 'Error fetching data' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        console.error('Error in API route:', error);
+        return new Response(JSON.stringify({ error: 'Internal Server Error', details: error.message }), { status: 500 });
     }
 }
