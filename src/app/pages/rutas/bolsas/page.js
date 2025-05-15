@@ -14,6 +14,7 @@ export default function Bolsas() {
   const [anio, setAnio] = useState("");
   const [monto, setMonto] = useState("");
   const [tipoBolsa, setTipoBolsa] = useState("");
+  const [departamentos, setDepartamentos] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +31,21 @@ export default function Bolsas() {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchDepartamentos = async () => {
+      try {
+        const response = await fetch('/api/departamentos'); // Llamada al endpoint API para obtener departamentos
+        const data = await response.json();
+        setDepartamentos(Array.isArray(data) ? data : []); // Aseguramos que departamentos sea un array
+      } catch (error) {
+        console.error('Error fetching departamentos:', error);
+        setDepartamentos([]); // En caso de error, inicializamos como array vacío
+      }
+    };
+
+    fetchDepartamentos();
   }, []);
 
   useEffect(() => {
@@ -56,13 +72,18 @@ export default function Bolsas() {
       <p className="mb-4">Aquí puedes ver todas las bolsas de todos los departamentos por año.</p>
 
       <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por departamento"
+        <select
           value={searchDepartamento}
           onChange={(e) => setSearchDepartamento(e.target.value)}
           className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/2"
-        />
+        >
+          <option value="">Seleccionar departamento</option>
+          {departamentos.map((dep, idx) => (
+            <option key={idx} value={dep.nombre}>
+              {dep.nombre}
+            </option>
+          ))}
+        </select>
 
         <select
           value={selectedAnio}
@@ -131,13 +152,19 @@ export default function Bolsas() {
         >
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Departamento</label>
-            <input
-              type="text"
+            <select
               value={departamento}
               onChange={(e) => setDepartamento(e.target.value)}
               className="border border-gray-300 rounded px-4 py-2 w-full"
               required
-            />
+            >
+              <option value="">Seleccionar departamento</option>
+              {departamentos.map((dep, idx) => (
+                <option key={idx} value={dep.nombre}>
+                  {dep.nombre}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-4">
