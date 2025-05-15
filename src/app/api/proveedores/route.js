@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { pool } from '@/app/api/lib/db';
 import { getProveedores, addProveedor, deleteProveedor } from '@/app/api/functions/select';
 
 export async function GET() {
@@ -30,7 +31,20 @@ export async function POST(req) {
 export async function DELETE(req) {
   try {
     const { nombre } = await req.json();
+
+    // 1. Busca el ID del proveedor por nombre
+    const [proveedorRows] = await pool.query('SELECT Id_Proveedor FROM proveedores WHERE nombre = ?', [nombre]);
+    if (!proveedorRows.length) {
+      return NextResponse.json({ error: 'Proveedor no encontrado' }, { status: 404 });
+    }
+    const idProveedor = proveedorRows[0].Id_Proveedor;
+
+    // 2. Elimina relaciones en PROVEEDOR_DEPARTAMENTO
+    await pool.query('DELETE FROM PROVEEDOR_DEPARTAMENTO WHERE Id_Proveedor = ?', [idProveedor]);
+
+    // 3. Elimina el proveedor
     await deleteProveedor(nombre);
+
     return NextResponse.json({ message: 'Proveedor eliminado con éxito' });
   } catch (error) {
     console.error('Error deleting proveedor:', error);
