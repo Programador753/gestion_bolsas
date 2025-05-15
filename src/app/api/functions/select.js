@@ -1,4 +1,4 @@
-  import { pool } from '@/app/api/lib/db';
+import { pool } from '@/app/api/lib/db';
 
 export async function getDepartamentos() {
   try {
@@ -147,6 +147,7 @@ export async function getDepartamentosDeProveedor(idProveedor) {
   }
 }
 
+<<<<<<< Updated upstream
 export async function addDepartamento(nombre) {
   try {
     const [result] = await pool.query('INSERT INTO departamento (nombre) VALUES (?)', [nombre]);
@@ -192,4 +193,38 @@ export async function deleteProveedor(nombre) {
   }
 }
 
+=======
+export async function getAnio(userId) {
+    try {
+        // Fetch año using a parameterized query
+        const [rows] = await pool.query('SELECT Anio FROM bolsa WHERE Id_Departamento = ?', [userId]);
+>>>>>>> Stashed changes
 
+        return {
+            anio: rows[0]?.Anio || 'Desconocido',
+        };
+    } catch (error) {
+        console.error('Error fetching año:', error);
+        throw new Error('Error fetching año');
+    }
+}
+
+export async function getGasto() {
+    try {
+        // Fetch gasto with proper aliasing and handling multiple rows
+        const [rows] = await pool.query(`
+          SELECT SUM(ORDEN_COMPRA.Gasto) AS TotalGasto, DEPARTAMENTO.Nombre AS DepartamentoNombre 
+          FROM ORDEN_COMPRA 
+          JOIN USUARIO ON ORDEN_COMPRA.Id_Usuario = USUARIO.Id_Usuario 
+          JOIN DEPARTAMENTO ON USUARIO.Id_Departamento = DEPARTAMENTO.Id_Departamento 
+          GROUP BY DEPARTAMENTO.Id_Departamento, DEPARTAMENTO.Nombre`);
+
+        return rows.map(row => ({
+            departamento: row.DepartamentoNombre,
+            gasto: row.TotalGasto || 0,
+        }));
+    } catch (error) {
+        console.error('Error fetching gasto:', error);
+        throw new Error('Error fetching gasto');
+    }
+}
