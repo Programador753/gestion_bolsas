@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from './InicioPage.module.css';
+import { useSession } from "next-auth/react";
 
 const InicioPage = () => {
+    const { data: session } = useSession(); // Usar el hook useSession
     const [ordenes, setOrdenes] = useState([]);
     const [gastoPorDepartamento, setGastoPorDepartamento] = useState([]);
     const [presupuestoPorDepartamento, setPresupuestoPorDepartamento] = useState([]);
@@ -44,6 +46,14 @@ const InicioPage = () => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (session?.user?.role === "Jefe_Departamento" && session.user.departamento) {
+            setGastoPorDepartamento(prev => prev.filter(item => item.departamento.toLowerCase() === session.user.departamento.toLowerCase()));
+            setPresupuestoPorDepartamento(prev => prev.filter(item => item.departamento.toLowerCase() === session.user.departamento.toLowerCase()));
+            setOrdenes(prev => prev.filter(orden => orden.departamento?.toLowerCase() === session.user.departamento.toLowerCase()));
+        }
+    }, [session]);
+
     const filteredGasto = searchDepartamento.trim() === "" ? gastoPorDepartamento : gastoPorDepartamento.filter(item =>
         item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
     );
@@ -59,40 +69,51 @@ const InicioPage = () => {
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4 text-center text-red-600">Inicio</h1>
+            {session?.user?.role === "Jefe_Departamento" && session.user.departamento && (
+                <h2 className="text-lg font-normal text-center text-gray-700 mb-4">
+                    Departamento: {session.user.departamento}
+                </h2>
+            )}
             <p className="mb-4">Bienvenido a la Gestión de Bolsas</p>
 
             <div className="flex flex-col md:flex-row gap-4 mb-4">
-                <input
-                    type="text"
-                    placeholder="Buscar por departamento"
-                    value={searchDepartamento}
-                    onChange={(e) => setSearchDepartamento(e.target.value)}
-                    className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/2"
-                />
+                {session?.user?.role !== "Jefe_Departamento" && (
+                    <input
+                        type="text"
+                        placeholder="Buscar por departamento"
+                        value={searchDepartamento}
+                        onChange={(e) => setSearchDepartamento(e.target.value)}
+                        className="border border-gray-300 rounded px-4 py-2 w-full md:w-1/2"
+                    />
+                )}
             </div>
 
             <div>
                 <h2 className="text-xl font-semibold mb-2">Presupuesto Total por Departamento</h2>
-                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
                     <thead className="bg-red-600 text-white">
                         <tr>
-                            <th className="px-4 py-2 text-left">Departamento</th>
-                            <th className="px-4 py-2 text-right">Presupuesto Total (€)</th>
-                            <th className="px-4 py-2 text-left">Tipo</th>
+                            {session?.user?.role !== "Jefe_Departamento" && (
+                                <th className="px-6 py-3 text-left">Departamento</th>
+                            )}
+                            <th className="px-6 py-3 text-right">Presupuesto Total (€)</th>
+                            <th className="px-6 py-3 text-left">Tipo</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredPresupuesto.length > 0 ? (
                             filteredPresupuesto.map((item, idx) => (
-                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
-                                    <td className="px-4 py-3 text-black">{item.departamento}</td>
-                                    <td className="px-4 py-3 text-right font-medium text-black">{item.presupuesto_total}</td>
-                                    <td className="px-4 py-3 text-black">{item.tipo}</td>
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                                    {session?.user?.role !== "Jefe_Departamento" && (
+                                        <td className="px-6 py-4 text-black">{item.departamento}</td>
+                                    )}
+                                    <td className="px-6 py-4 text-right font-medium text-black">{item.presupuesto_total}</td>
+                                    <td className="px-6 py-4 text-black">{item.tipo}</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="3" className="text-center py-6 text-gray-500">
+                                <td colSpan={session?.user?.role === "Jefe_Departamento" ? 2 : 3} className="text-center py-6 text-gray-500">
                                     No hay datos disponibles.
                                 </td>
                             </tr>
@@ -100,27 +121,31 @@ const InicioPage = () => {
                     </tbody>
                 </table>
             </div>
-            <br></br>
+
             <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-2">Gasto Total por Departamento</h2>
-                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
                     <thead className="bg-red-600 text-white">
                         <tr>
-                            <th className="px-4 py-2 text-left">Departamento</th>
-                            <th className="px-4 py-2 text-right">Gasto Total (€)</th>
+                            {session?.user?.role !== "Jefe_Departamento" && (
+                                <th className="px-6 py-3 text-left">Departamento</th>
+                            )}
+                            <th className="px-6 py-3 text-right">Gasto Total (€)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredGasto.length > 0 ? (
                             filteredGasto.map((item, idx) => (
-                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
-                                    <td className="px-4 py-3 text-black">{item.departamento}</td>
-                                    <td className="px-4 py-3 text-right font-medium text-black">{item.gasto_total}</td>
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                                    {session?.user?.role !== "Jefe_Departamento" && (
+                                        <td className="px-6 py-4 text-black">{item.departamento}</td>
+                                    )}
+                                    <td className="px-6 py-4 text-right font-medium text-black">{item.gasto_total}</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="2" className="text-center py-6 text-gray-500">
+                                <td colSpan={session?.user?.role === "Jefe_Departamento" ? 1 : 2} className="text-center py-6 text-gray-500">
                                     No hay datos disponibles.
                                 </td>
                             </tr>
@@ -131,38 +156,34 @@ const InicioPage = () => {
 
             <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-2">Últimas Órdenes de Compra</h2>
-                <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
                     <thead className="bg-red-600 text-white">
                         <tr>
-                            <th className="px-4 py-2 text-left">Departamento</th>
-                            <th className="px-4 py-2 text-left">Nombre del Proveedor</th>
-                            <th className="px-4 py-2 text-right">Gasto (€)</th>
-                            <th className="px-4 py-2 text-left">Fecha</th>
-                            <th className="px-4 py-2 text-left">Tipo</th>
+                            {session?.user?.role !== "Jefe_Departamento" && (
+                                <th className="px-6 py-3 text-left">Departamento</th>
+                            )}
+                            <th className="px-6 py-3 text-left">Nombre del Proveedor</th>
+                            <th className="px-6 py-3 text-right">Gasto (€)</th>
+                            <th className="px-6 py-3 text-left">Fecha</th>
+                            <th className="px-6 py-3 text-left">Tipo</th>
                         </tr>
                     </thead>
                     <tbody>
                         {ordenes.length > 0 ? (
-                            ordenes.map((orden, idx) => {
-                                const departamento = orden.departamento || 'Sin Departamento';
-                                const nombreProveedor = orden.nombre_proveedor || 'Sin Proveedor';
-                                const gasto = orden.gasto !== undefined ? orden.gasto : 'N/A';
-                                const fecha = orden.fecha ? new Date(orden.fecha).toLocaleDateString() : 'Sin Fecha';
-                                const tipo = orden.tipo || 'Sin Tipo';
-
-                                return (
-                                    <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-red-50"}>
-                                        <td className="px-4 py-3 text-black">{departamento}</td>
-                                        <td className="px-4 py-3 text-black">{nombreProveedor}</td>
-                                        <td className="px-4 py-3 text-right font-medium text-black">{gasto}</td>
-                                        <td className="px-4 py-3 text-black">{fecha}</td>
-                                        <td className="px-4 py-3 text-black">{tipo}</td>
-                                    </tr>
-                                );
-                            })
+                            ordenes.map((orden, idx) => (
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                                    {session?.user?.role !== "Jefe_Departamento" && (
+                                        <td className="px-6 py-4 text-black">{orden.departamento || 'Sin Departamento'}</td>
+                                    )}
+                                    <td className="px-6 py-4 text-black">{orden.nombre_proveedor || 'Sin Proveedor'}</td>
+                                    <td className="px-6 py-4 text-right font-medium text-black">{orden.gasto !== undefined ? orden.gasto : 'N/A'}</td>
+                                    <td className="px-6 py-4 text-black">{orden.fecha ? new Date(orden.fecha).toLocaleDateString() : 'Sin Fecha'}</td>
+                                    <td className="px-6 py-4 text-black">{orden.tipo || 'Sin Tipo'}</td>
+                                </tr>
+                            ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="text-center py-6 text-gray-500">
+                                <td colSpan={session?.user?.role === "Jefe_Departamento" ? 4 : 5} className="text-center py-6 text-gray-500">
                                     No hay órdenes de compra disponibles.
                                 </td>
                             </tr>
