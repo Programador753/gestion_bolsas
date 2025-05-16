@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function ProveedoresPage() {
   const { data: session, status } = useSession();
@@ -10,6 +11,7 @@ export default function ProveedoresPage() {
   const [nuevoProveedor, setNuevoProveedor] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
+  const router = useRouter();
 
   // Cargar proveedores según el rol
   useEffect(() => {
@@ -99,9 +101,8 @@ export default function ProveedoresPage() {
       {/* Pop-up flotante */}
       {mensaje && (
         <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${
-            tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
-          }`}
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`}
         >
           {mensaje}
         </div>
@@ -113,7 +114,7 @@ export default function ProveedoresPage() {
         </h1>
 
         {rol === "Administrador" && (
-          <div className="mb-6">
+          <div className="mb-6 flex gap-2">
             <input
               type="text"
               className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
@@ -123,9 +124,21 @@ export default function ProveedoresPage() {
             />
             <button
               onClick={handleAgregarProveedor}
-              className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
+              className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
             >
-              Añadir Proveedor
+              Nuevo proveedor
+            </button>
+          </div>
+        )}
+
+        {/* Botón Asignar proveedores SOLO para Jefe_Departamento, encima de la tabla */}
+        {rol === "Jefe_Departamento" && (
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => router.push("/pages/rutas/proveedores/asignar")}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm px-6 py-3 rounded-md transition font-semibold"
+            >
+              Asignar proveedores
             </button>
           </div>
         )}
@@ -169,6 +182,8 @@ export default function ProveedoresPage() {
             </tbody>
           </table>
         </div>
+
+
       </main>
     </div>
   );

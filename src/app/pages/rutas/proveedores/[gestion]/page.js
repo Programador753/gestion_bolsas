@@ -73,12 +73,25 @@ export default function GestionPage() {
   if (!proveedor) return <div>Cargando...</div>;
 
   return (
-    <div className="min-h-screen bg-white flex justify-center items-center px-4 py-10 relative">
+    <div className="min-h-screen bg-white flex flex-col justify-center items-center px-4 py-10 relative">
       {mensaje && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg bg-green-600">
           {mensaje}
         </div>
       )}
+      {/* Botón Volver estático arriba a la izquierda, fuera del div principal */}
+      <div className="w-full">
+        <button
+          onClick={() => window.history.back()}
+          className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-4 ml-4 bg-transparent"
+          aria-label="Volver"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </button>
+      </div>
       <div className="w-full max-w-2xl bg-white text-black p-4 rounded-xl shadow-lg border border-black relative">
         <h1 className="text-3xl font-extrabold mb-6 text-red-600">
           {proveedor.nombre}
