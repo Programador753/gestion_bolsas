@@ -17,11 +17,13 @@ const InicioPage = () => {
   const { data: session } = useSession(); // Usar el hook useSession
   const [ordenes, setOrdenes] = useState([]);
   const [gastoPorDepartamento, setGastoPorDepartamento] = useState([]);
-  const [presupuestoPorDepartamento, setPresupuestoPorDepartamento] = useState(
-    []
-  );
+  const [presupuestoPorDepartamento, setPresupuestoPorDepartamento] = useState([]);
   const [searchDepartamento, setSearchDepartamento] = useState("");
   const [selectedDepartamento, setSelectedDepartamento] = useState("");
+  // Estados para mostrar/ocultar tablas
+  const [showPresupuesto, setShowPresupuesto] = useState(true);
+  const [showGasto, setShowGasto] = useState(true);
+  const [showOrdenes, setShowOrdenes] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -178,215 +180,241 @@ const InicioPage = () => {
             </div>
           )}
           {/* Tablas a la izquierda */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2 text-left">
-              Presupuesto Total {session?.user?.role !== "Jefe_Departamento" && (
-                <span className="font-normal">por Departamento</span>
-              )}
-            </h2>
-            <div
+      <div>
+        <button
+          type="button"
+          className="text-xl font-semibold mb-2 text-left w-full flex items-center gap-2 focus:outline-none"
+          onClick={() => setShowPresupuesto((prev) => !prev)}
+          aria-expanded={showPresupuesto}
+        >
+          Presupuesto Total
+          {session?.user?.role !== "Jefe_Departamento" && (
+            <span className="font-normal ml-2">por Departamento</span>
+          )}
+          <span className="ml-2">{showPresupuesto ? "▲" : "▼"}</span>
+        </button>
+        {showPresupuesto && (
+          <div
+            className={
+              session?.user?.role === "Jefe_Departamento"
+                ? "w-full flex justify-start"
+                : "w-full"
+            }
+          >
+            <table
               className={
-                session?.user?.role === "Jefe_Departamento"
-                  ? "w-full flex justify-start"
-                  : "w-full"
+                (session?.user?.role === "Jefe_Departamento"
+                  ? "w-full max-w-[600px] mx-0 "
+                  : "min-w-full ") +
+                "bg-white border border-gray-300 rounded-lg shadow-md"
               }
             >
-              <table
-                className={
-                  (session?.user?.role === "Jefe_Departamento"
-                    ? "w-full max-w-[600px] mx-0 "
-                    : "min-w-full ") +
-                  "bg-white border border-gray-300 rounded-lg shadow-md"
-                }
-              >
-                <thead className="bg-red-600 text-white">
-                  <tr>
-                    {session?.user?.role !== "Jefe_Departamento" && (
-                      <th className="px-6 py-3 text-center">Departamento</th>
-                    )}
-                    <th className="px-6 py-3 text-center">
-                      Presupuesto Total (€)
-                    </th>
-                    <th className="px-6 py-3 text-center">Tipo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPresupuesto.length > 0 ? (
-                    filteredPresupuesto.map((item, idx) => (
-                      <tr
-                        key={idx}
-                        className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                      >
-                        {session?.user?.role !== "Jefe_Departamento" && (
-                          <td className="px-6 py-4 text-black text-center">
-                            {item.departamento}
-                          </td>
-                        )}
-                        <td className="px-6 py-4 text-black text-center font-medium">
-                          {item.presupuesto_total}
-                        </td>
+              <thead className="bg-red-600 text-white">
+                <tr>
+                  {session?.user?.role !== "Jefe_Departamento" && (
+                    <th className="px-6 py-3 text-center">Departamento</th>
+                  )}
+                  <th className="px-6 py-3 text-center">
+                    Presupuesto Total (€)
+                  </th>
+                  <th className="px-6 py-3 text-center">Tipo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPresupuesto.length > 0 ? (
+                  filteredPresupuesto.map((item, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    >
+                      {session?.user?.role !== "Jefe_Departamento" && (
                         <td className="px-6 py-4 text-black text-center">
-                          {item.tipo}
+                          {item.departamento}
                         </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={
-                          session?.user?.role === "Jefe_Departamento" ? 2 : 3
-                        }
-                        className="text-center py-6 text-gray-500"
-                      >
-                        No hay datos disponibles.
+                      )}
+                      <td className="px-6 py-4 text-black text-center font-medium">
+                        {item.presupuesto_total}
+                      </td>
+                      <td className="px-6 py-4 text-black text-center">
+                        {item.tipo}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={
+                        session?.user?.role === "Jefe_Departamento" ? 2 : 3
+                      }
+                      className="text-center py-6 text-gray-500"
+                    >
+                      No hay datos disponibles.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-          <br /> 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 text-left">
-              Gasto Total {session?.user?.role !== "Jefe_Departamento" && (
-                <span className="font-normal">por Departamento</span>
-              )}
-            </h2>
-            <div
+        )}
+      </div>
+      <br />
+      <div className="mb-8">
+        <button
+          type="button"
+          className="text-xl font-semibold mb-2 text-left w-full flex items-center gap-2 focus:outline-none"
+          onClick={() => setShowGasto((prev) => !prev)}
+          aria-expanded={showGasto}
+        >
+          Gasto Total
+          {session?.user?.role !== "Jefe_Departamento" && (
+            <span className="font-normal ml-2">por Departamento</span>
+          )}
+          <span className="ml-2">{showGasto ? "▲" : "▼"}</span>
+        </button>
+        {showGasto && (
+          <div
+            className={
+              session?.user?.role === "Jefe_Departamento"
+                ? "w-full flex justify-start"
+                : "w-full"
+            }
+          >
+            <table
               className={
-                session?.user?.role === "Jefe_Departamento"
-                  ? "w-full flex justify-start"
-                  : "w-full"
+                (session?.user?.role === "Jefe_Departamento"
+                  ? "w-full max-w-[600px] mx-0 "
+                  : "min-w-full ") +
+                "bg-white border border-gray-300 rounded-lg shadow-md"
               }
             >
-              <table
-                className={
-                  (session?.user?.role === "Jefe_Departamento"
-                    ? "w-full max-w-[600px] mx-0 "
-                    : "min-w-full ") +
-                  "bg-white border border-gray-300 rounded-lg shadow-md"
-                }
-              >
-                <thead className="bg-red-600 text-white">
-                  <tr>
-                    {session?.user?.role !== "Jefe_Departamento" && (
-                      <th className="px-6 py-3 text-center">Departamento</th>
-                    )}
-                    <th className="px-6 py-3 text-center">Gasto Total (€)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredGasto.length > 0 ? (
-                    filteredGasto.map((item, idx) => (
-                      <tr
-                        key={idx}
-                        className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                      >
-                        {session?.user?.role !== "Jefe_Departamento" && (
-                          <td className="px-6 py-4 text-black text-center">
-                            {item.departamento}
-                          </td>
-                        )}
-                        <td className="px-6 py-4 text-black text-center font-medium">
-                          {item.gasto_total}
+              <thead className="bg-red-600 text-white">
+                <tr>
+                  {session?.user?.role !== "Jefe_Departamento" && (
+                    <th className="px-6 py-3 text-center">Departamento</th>
+                  )}
+                  <th className="px-6 py-3 text-center">Gasto Total (€)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredGasto.length > 0 ? (
+                  filteredGasto.map((item, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    >
+                      {session?.user?.role !== "Jefe_Departamento" && (
+                        <td className="px-6 py-4 text-black text-center">
+                          {item.departamento}
                         </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={
-                          session?.user?.role === "Jefe_Departamento" ? 1 : 2
-                        }
-                        className="text-center py-6 text-gray-500"
-                      >
-                        No hay datos disponibles.
+                      )}
+                      <td className="px-6 py-4 text-black text-center font-medium">
+                        {item.gasto_total}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={
+                        session?.user?.role === "Jefe_Departamento" ? 1 : 2
+                      }
+                      className="text-center py-6 text-gray-500"
+                    >
+                      No hay datos disponibles.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 text-left">
-              Últimas Órdenes de Compra
-            </h2>
-            <div
+        )}
+      </div>
+      <div className="mb-8">
+        <button
+          type="button"
+          className="text-xl font-semibold mb-2 text-left w-full flex items-center gap-2 focus:outline-none"
+          onClick={() => setShowOrdenes((prev) => !prev)}
+          aria-expanded={showOrdenes}
+        >
+          Últimas Órdenes de Compra
+          <span className="ml-2">{showOrdenes ? "▲" : "▼"}</span>
+        </button>
+        {showOrdenes && (
+          <div
+            className={
+              session?.user?.role === "Jefe_Departamento"
+                ? "w-full flex justify-start"
+                : "w-full"
+            }
+          >
+            <table
               className={
-                session?.user?.role === "Jefe_Departamento"
-                  ? "w-full flex justify-start"
-                  : "w-full"
+                (session?.user?.role === "Jefe_Departamento"
+                  ? "w-full max-w-[600px] mx-0 "
+                  : "min-w-full ") +
+                "bg-white border border-gray-300 rounded-lg shadow-md"
               }
             >
-              <table
-                className={
-                  (session?.user?.role === "Jefe_Departamento"
-                    ? "w-full max-w-[600px] mx-0 "
-                    : "min-w-full ") +
-                  "bg-white border border-gray-300 rounded-lg shadow-md"
-                }
-              >
-                <thead className="bg-red-600 text-white">
-                  <tr>
-                    {session?.user?.role !== "Jefe_Departamento" && (
-                      <th className="px-6 py-3 text-center">Departamento</th>
-                    )}
-                    <th className="px-6 py-3 text-center">
-                      Nombre del Proveedor
-                    </th>
-                    <th className="px-6 py-3 text-center">Gasto (€)</th>
-                    <th className="px-6 py-3 text-center">Fecha</th>
-                    <th className="px-6 py-3 text-center">Tipo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrdenes.length > 0 ? (
-                    filteredOrdenes.map((orden, idx) => (
-                      <tr
-                        key={idx}
-                        className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                      >
-                        {session?.user?.role !== "Jefe_Departamento" && (
-                          <td className="px-6 py-4 text-black text-center">
-                            {orden.departamento || "Sin Departamento"}
-                          </td>
-                        )}
+              <thead className="bg-red-600 text-white">
+                <tr>
+                  {session?.user?.role !== "Jefe_Departamento" && (
+                    <th className="px-6 py-3 text-center">Departamento</th>
+                  )}
+                  <th className="px-6 py-3 text-center">
+                    Nombre del Proveedor
+                  </th>
+                  <th className="px-6 py-3 text-center">Gasto (€)</th>
+                  <th className="px-6 py-3 text-center">Fecha</th>
+                  <th className="px-6 py-3 text-center">Tipo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrdenes.length > 0 ? (
+                  filteredOrdenes.map((orden, idx) => (
+                    <tr
+                      key={idx}
+                      className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    >
+                      {session?.user?.role !== "Jefe_Departamento" && (
                         <td className="px-6 py-4 text-black text-center">
-                          {orden.nombre_proveedor || "Sin Proveedor"}
+                          {orden.departamento || "Sin Departamento"}
                         </td>
-                        <td className="px-6 py-4 text-black text-center font-medium">
-                          {orden.gasto !== undefined ? orden.gasto : "N/A"}
-                        </td>
-                        <td className="px-6 py-4 text-black text-center">
-                          {orden.fecha
-                            ? new Date(orden.fecha).toLocaleDateString()
-                            : "Sin Fecha"}
-                        </td>
-                        <td className="px-6 py-4 text-black text-center">
-                          {orden.tipo || "Sin Tipo"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={
-                          session?.user?.role === "Jefe_Departamento" ? 4 : 5
-                        }
-                        className="text-center py-6 text-gray-500"
-                      >
-                        No hay órdenes de compra disponibles.
+                      )}
+                      <td className="px-6 py-4 text-black text-center">
+                        {orden.nombre_proveedor || "Sin Proveedor"}
+                      </td>
+                      <td className="px-6 py-4 text-black text-center font-medium">
+                        {orden.gasto !== undefined ? orden.gasto : "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-black text-center">
+                        {orden.fecha
+                          ? new Date(orden.fecha).toLocaleDateString()
+                          : "Sin Fecha"}
+                      </td>
+                      <td className="px-6 py-4 text-black text-center">
+                        {orden.tipo || "Sin Tipo"}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={
+                        session?.user?.role === "Jefe_Departamento" ? 4 : 5
+                      }
+                      className="text-center py-6 text-gray-500"
+                    >
+                      No hay órdenes de compra disponibles.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
+        )}
+      </div>
         </div>
-        <div className="md:w-1/2 w-full flex flex-col items-center">
+        <div className="md:w-1/2 w-full flex flex-col items-center ml-auto">
           <h2 className="text-xl font-semibold mb-2 text-left w-full">
             Evolución anual de Presupuesto y Gastos
           </h2>
@@ -394,7 +422,7 @@ const InicioPage = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={chartData}
-                margin={{ top: 40, right: 30, left: 0, bottom: 5 }}
+                margin={{ top: 40, right: 30, left: 40, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="anio" />
@@ -449,7 +477,7 @@ const InicioPage = () => {
                       Gasto: gasto,
                     };
                   })}
-                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="anio" />
