@@ -14,24 +14,32 @@ export default function GestionPage() {
   // Cargar datos al montar
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Obtener proveedores
-      const proveedoresRes = await fetch('/api/proveedores');
-      const proveedores = await proveedoresRes.json();
-      const proveedorSel = proveedores.find(
-        (p) => p.nombre.toLowerCase() === nombre.toLowerCase()
-      );
-      setProveedor(proveedorSel);
+      try {
+        // 1. Obtener proveedores
+        const proveedoresRes = await fetch('/api/proveedores');
+        if (!proveedoresRes.ok) throw new Error('Error al obtener proveedores');
+        const proveedores = await proveedoresRes.json();
+        const proveedorSel = proveedores.find(
+          (p) => p.nombre.toLowerCase() === nombre.toLowerCase()
+        );
+        setProveedor(proveedorSel);
 
-      // 2. Obtener departamentos
-      const departamentosRes = await fetch('/api/departamentos');
-      const departamentosData = await departamentosRes.json();
-      setDepartamentos(departamentosData);
+        // 2. Obtener departamentos
+        const departamentosRes = await fetch('/api/departamentos');
+        if (!departamentosRes.ok) throw new Error('Error al obtener departamentos');
+        const departamentosData = await departamentosRes.json();
+        setDepartamentos(departamentosData);
 
-      // 3. Obtener departamentos relacionados
-      if (proveedorSel) {
-        const relacionadosRes = await fetch(`/api/proveedores/${proveedorSel.Id_Proveedor}/departamentos`);
-        const relacionados = await relacionadosRes.json();
-        setSeleccionados(relacionados); // Array de Id_Departamento
+        // 3. Obtener departamentos relacionados
+        if (proveedorSel) {
+          const relacionadosRes = await fetch(`/api/proveedores/${proveedorSel.Id_Proveedor}/departamentos`);
+          if (!relacionadosRes.ok) throw new Error('Error al obtener departamentos relacionados');
+          const relacionados = await relacionadosRes.json();
+          setSeleccionados(relacionados); // Array de Id_Departamento
+        }
+      } catch (err) {
+        setMensaje(err.message || "Error de red");
+        console.error(err);
       }
     };
     fetchData();
@@ -83,7 +91,7 @@ export default function GestionPage() {
       <div className="w-full">
         <button
           onClick={() => window.history.back()}
-          className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-4 ml-4 bg-transparent"
+          className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-1 ml-4 bg-transparent"
           aria-label="Volver"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
