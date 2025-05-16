@@ -15,39 +15,35 @@ export async function GET() {
 export async function POST(req) {
   try {
     const { nombre } = await req.json();
-    console.log('Nombre recibido en API Route:', nombre); // Depuración
-    if (!nombre) {
-      return NextResponse.json({ error: 'Nombre del proveedor es requerido' }, { status: 400 });
+    if (!nombre || !nombre.trim()) {
+      return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 });
     }
-    const nuevoProveedor = await addProveedor(nombre);
-    console.log('Proveedor añadido:', nuevoProveedor); // Depuración
-    return NextResponse.json(nuevoProveedor);
+    // Inserta el proveedor y devuelve el nuevo registro
+    const [result] = await pool.query(
+      'INSERT INTO proveedores (nombre) VALUES (?)',
+      [nombre.trim()]
+    );
+    const [nuevoProveedor] = await pool.query(
+      'SELECT * FROM proveedores WHERE Id_Proveedor = ?',
+      [result.insertId]
+    );
+    return NextResponse.json(nuevoProveedor[0]);
   } catch (error) {
     console.error('Error adding proveedor:', error);
-    return NextResponse.json({ error: 'Error al añadir el proveedor' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al añadir proveedor' }, { status: 500 });
   }
 }
 
 export async function DELETE(req) {
   try {
     const { nombre } = await req.json();
-
-    // 1. Busca el ID del proveedor por nombre
-    const [proveedorRows] = await pool.query('SELECT Id_Proveedor FROM proveedores WHERE nombre = ?', [nombre]);
-    if (!proveedorRows.length) {
-      return NextResponse.json({ error: 'Proveedor no encontrado' }, { status: 404 });
+    if (!nombre) {
+      return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 });
     }
-    const idProveedor = proveedorRows[0].Id_Proveedor;
-
-    // 2. Elimina relaciones en PROVEEDOR_DEPARTAMENTO
-    await pool.query('DELETE FROM PROVEEDOR_DEPARTAMENTO WHERE Id_Proveedor = ?', [idProveedor]);
-
-    // 3. Elimina el proveedor
-    await deleteProveedor(nombre);
-
-    return NextResponse.json({ message: 'Proveedor eliminado con éxito' });
+    await pool.query('DELETE FROM proveedores WHERE nombre = ?', [nombre]);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting proveedor:', error);
-    return NextResponse.json({ error: 'Error deleting proveedor' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al eliminar proveedor' }, { status: 500 });
   }
 }
