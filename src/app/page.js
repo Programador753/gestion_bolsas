@@ -21,6 +21,7 @@ const InicioPage = () => {
     []
   );
   const [searchDepartamento, setSearchDepartamento] = useState("");
+  const [selectedDepartamento, setSelectedDepartamento] = useState("");
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,6 +104,16 @@ const InicioPage = () => {
             .includes(searchDepartamento.toLowerCase())
         );
 
+  // Filtrar órdenes de compra según el filtro de departamento (solo para usuarios que no son Jefe_Departamento)
+  const filteredOrdenes =
+    session?.user?.role !== "Jefe_Departamento" && searchDepartamento.trim() !== ""
+      ? ordenes.filter(
+          (orden) =>
+            orden.departamento &&
+            orden.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
+        )
+      : ordenes;
+
   // Calcular datos anuales para la gráfica
   const yearsSet = new Set([
     ...presupuestoPorDepartamento.map((item) => item.anio),
@@ -142,14 +153,36 @@ const InicioPage = () => {
             Departamento: {session.user.departamento}
           </h2>
         )}
-      <p className="mb-4">Bienvenido a la Gestión de Bolsas</p>
 
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1 min-w-0">
+          {/* Filtro global para todas las tablas */}
+          {session?.user?.role !== "Jefe_Departamento" && (
+            <div className="mb-4">
+              <label className="block mb-2 font-semibold">
+                Filtrar por departamento:
+              </label>
+              <select
+                className="border border-gray-300 rounded px-4 py-2 w-full"
+                value={searchDepartamento}
+                onChange={(e) => setSearchDepartamento(e.target.value)}
+              >
+                <option value="">Todos los departamentos</option>
+                {Array.from(new Set([
+                  ...presupuestoPorDepartamento.map(item => item.departamento),
+                  ...gastoPorDepartamento.map(item => item.departamento)
+                ])).filter(Boolean).map(dep => (
+                    <option key={dep} value={dep}>{dep}</option>
+                  ))}
+              </select>
+            </div>
+          )}
           {/* Tablas a la izquierda */}
           <div>
             <h2 className="text-xl font-semibold mb-2 text-left">
-              Presupuesto Total por Departamento
+              Presupuesto Total {session?.user?.role !== "Jefe_Departamento" && (
+                <span className="font-normal">por Departamento</span>
+              )}
             </h2>
             <div
               className={
@@ -213,9 +246,12 @@ const InicioPage = () => {
               </table>
             </div>
           </div>
+          <br /> 
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-2 text-left">
-              Gasto Total por Departamento
+              Gasto Total {session?.user?.role !== "Jefe_Departamento" && (
+                <span className="font-normal">por Departamento</span>
+              )}
             </h2>
             <div
               className={
@@ -306,8 +342,8 @@ const InicioPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {ordenes.length > 0 ? (
-                    ordenes.map((orden, idx) => (
+                  {filteredOrdenes.length > 0 ? (
+                    filteredOrdenes.map((orden, idx) => (
                       <tr
                         key={idx}
                         className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
@@ -358,11 +394,11 @@ const InicioPage = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={chartData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                margin={{ top: 40, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="anio" />
-                <YAxis />
+                <YAxis allowDataOverflow domain={[0, 'auto']} />
                 <Tooltip />
                 <Legend />
                 <Line
@@ -380,6 +416,62 @@ const InicioPage = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Gráfica por departamento filtrado */}
+          {session?.user?.role !== "Jefe_Departamento" && searchDepartamento && (
+            <div className="w-full mt-8">
+              <h3 className="text-lg font-semibold mb-2 text-left w-full">
+                Evolución anual de {searchDepartamento}
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={years.map((anio) => {
+                    const presupuesto = presupuestoPorDepartamento
+                      .filter(
+                        (item) =>
+                          item.anio === anio &&
+                          item.departamento === searchDepartamento
+                      )
+                      .reduce(
+                        (acc, curr) => acc + (parseFloat(curr.presupuesto_total) || 0),
+                        0
+                      );
+                    const gasto = gastoPorDepartamento
+                      .filter(
+                        (item) =>
+                          item.anio === anio &&
+                          item.departamento === searchDepartamento
+                      )
+                      .reduce((acc, curr) => acc + (parseFloat(curr.gasto_total) || 0), 0);
+                    return {
+                      anio,
+                      Presupuesto: presupuesto,
+                      Gasto: gasto,
+                    };
+                  })}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="anio" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="Presupuesto"
+                    stroke="#d90429"
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Gasto"
+                    stroke="#1d3557"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
     </div>

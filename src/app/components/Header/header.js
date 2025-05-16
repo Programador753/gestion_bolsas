@@ -22,8 +22,6 @@ export default function Header() {
         backgroundColor: "rgba(219, 0, 27, 0.9)", // Color de fondo con opacidad
         backdropFilter: "blur(10px)", // Efecto de desenfoque
         WebkitBackdropFilter: "blur(10px)", // Efecto de desenfoque para Safari
-        borderBottom: "1px solid rgba(255, 255, 255, 0.2)", // Borde inferior
-        borderRadius: "0 0 10px 10px", // Bordes redondeados inferiores
         transition: "background-color 0.3s ease-in-out", // Transición suave para el color de fondo
       }}
     >
