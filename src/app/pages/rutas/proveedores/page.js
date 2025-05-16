@@ -2,19 +2,34 @@
 
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
+import { useSession } from "next-auth/react";
 
 export default function ProveedoresPage() {
+  const { data: session, status } = useSession();
   const [proveedores, setProveedores] = useState([]);
   const [nuevoProveedor, setNuevoProveedor] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
 
-  // Cargar proveedores al montar el componente
+  // Cargar proveedores según el rol
   useEffect(() => {
+    if (!session) return;
+
+    const rol = session.user?.role;
+    const idDepartamento = session.user?.id || session.user?.departamento || session.user?.Id_Departamento;
+
     const fetchProveedores = async () => {
       try {
-        const res = await fetch('/api/proveedores');
-        const data = await res.json();
+        let data = [];
+        if (rol === "Jefe_Departamento" && idDepartamento) {
+          // Solo proveedores relacionados con su departamento
+          const res = await fetch(`/api/proveedores/departamento/${idDepartamento}`);
+          data = await res.json();
+        } else {
+          // Todos los proveedores
+          const res = await fetch('/api/proveedores');
+          data = await res.json();
+        }
         setProveedores(data);
       } catch (error) {
         console.error("Error fetching proveedores:", error);
@@ -22,7 +37,7 @@ export default function ProveedoresPage() {
     };
 
     fetchProveedores();
-  }, []);
+  }, [session]);
 
   const handleAgregarProveedor = async () => {
     if (!nuevoProveedor.trim()) return;
@@ -76,6 +91,9 @@ export default function ProveedoresPage() {
     }
   };
 
+  // Solo muestra los botones de agregar/eliminar si es Administrador
+  const rol = session?.user?.role;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center relative">
       {/* Pop-up flotante */}
@@ -94,21 +112,23 @@ export default function ProveedoresPage() {
           Lista de proveedores
         </h1>
 
-        <div className="mb-6">
-          <input
-            type="text"
-            className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
-            value={nuevoProveedor}
-            onChange={(e) => setNuevoProveedor(e.target.value)}
-            placeholder="Añadir nuevo proveedor"
-          />
-          <button
-            onClick={handleAgregarProveedor}
-            className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
-          >
-            Añadir Proveedor
-          </button>
-        </div>
+        {rol === "Administrador" && (
+          <div className="mb-6">
+            <input
+              type="text"
+              className="w-full p-2 text-sm md:text-base bg-white text-gray-800 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              value={nuevoProveedor}
+              onChange={(e) => setNuevoProveedor(e.target.value)}
+              placeholder="Añadir nuevo proveedor"
+            />
+            <button
+              onClick={handleAgregarProveedor}
+              className="mt-2 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md transition"
+            >
+              Añadir Proveedor
+            </button>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
@@ -127,12 +147,14 @@ export default function ProveedoresPage() {
                           Gestionar
                         </button>
                       </Link>
-                      <button
-                        onClick={() => handleEliminarProveedor(proveedor.nombre)}
-                        className="ml-2 cursor-pointer bg-gray-600 text-white px-5 py-2.5 rounded-md text-base hover:bg-gray-700 transition duration-200"
-                      >
-                        Eliminar
-                      </button>
+                      {rol === "Administrador" && (
+                        <button
+                          onClick={() => handleEliminarProveedor(proveedor.nombre)}
+                          className="ml-2 cursor-pointer bg-gray-600 text-white px-5 py-2.5 rounded-md text-base hover:bg-gray-700 transition duration-200"
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
