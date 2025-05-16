@@ -178,8 +178,12 @@ export default function OrdenCompraPage() {
   };
 
   return (
-    <div className="p-8 bg-white text-black rounded shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-red-600 text-center">Órdenes de Compra</h1>
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-grow container mx-auto p-4">
+        
+        <h1 className="text-2xl font-bold mb-2 text-center text-red-600">
+          Órdenes de Compra
+        </h1>
 
       <form onSubmit={handleSubmit} className="mb-8">
         <h2 className="text-xl font-semibold text-red-600 mb-4">Agregar Orden de Compra</h2>
@@ -322,6 +326,7 @@ export default function OrdenCompraPage() {
       ) : (
         <p className="text-gray-600 mt-6">No hay órdenes registradas.</p>
       )}
+    </div>
     </div>
   );
 }
