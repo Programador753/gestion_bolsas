@@ -21,6 +21,7 @@ const InicioPage = () => {
     []
   );
   const [searchDepartamento, setSearchDepartamento] = useState("");
+  const [selectedDepartamento, setSelectedDepartamento] = useState("");
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -142,7 +143,6 @@ const InicioPage = () => {
             Departamento: {session.user.departamento}
           </h2>
         )}
-      <p className="mb-4">Bienvenido a la Gestión de Bolsas</p>
 
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1 min-w-0">
@@ -358,11 +358,11 @@ const InicioPage = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={chartData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                margin={{ top: 40, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="anio" />
-                <YAxis />
+                <YAxis allowDataOverflow domain={[0, 'auto']} />
                 <Tooltip />
                 <Legend />
                 <Line
@@ -380,6 +380,85 @@ const InicioPage = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Filtro y gráfica por departamento */}
+          {session?.user?.role !== "Jefe_Departamento" && (
+            <div className="w-full mt-8">
+              <label className="block mb-2 font-semibold">
+                Filtrar por departamento:
+              </label>
+              <select
+                className="border border-gray-300 rounded px-4 py-2 w-full mb-4"
+                value={selectedDepartamento}
+                onChange={(e) => setSelectedDepartamento(e.target.value)}
+              >
+                <option value="">Seleccionar departamento</option>
+                {Array.from(
+                  new Set([
+                    ...presupuestoPorDepartamento.map(
+                      (item) => item.departamento
+                    ),
+                    ...gastoPorDepartamento.map((item) => item.departamento),
+                  ])
+                )
+                  .filter(Boolean)
+                  .map((dep) => (
+                    <option key={dep} value={dep}>
+                      {dep}
+                    </option>
+                  ))}
+              </select>
+              {selectedDepartamento && (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart
+                    data={years.map((anio) => {
+                      const presupuesto = presupuestoPorDepartamento
+                        .filter(
+                          (item) =>
+                            item.anio === anio &&
+                            item.departamento === selectedDepartamento
+                        )
+                        .reduce(
+                          (acc, curr) => acc + (parseFloat(curr.presupuesto_total) || 0),
+                          0
+                        );
+                      const gasto = gastoPorDepartamento
+                        .filter(
+                          (item) =>
+                            item.anio === anio &&
+                            item.departamento === selectedDepartamento
+                        )
+                        .reduce((acc, curr) => acc + (parseFloat(curr.gasto_total) || 0), 0);
+                      return {
+                        anio,
+                        Presupuesto: presupuesto,
+                        Gasto: gasto,
+                      };
+                    })}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="anio" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="Presupuesto"
+                      stroke="#d90429"
+                      strokeWidth={3}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Gasto"
+                      stroke="#1d3557"
+                      strokeWidth={3}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
