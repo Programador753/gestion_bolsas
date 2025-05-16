@@ -1,7 +1,7 @@
 // gestion_bolsas/src/app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { pool } from '@/app/api/lib/db';
+import { pool } from "@/app/api/lib/db";
 
 export const authOptions = {
   providers: [
@@ -44,7 +44,13 @@ export const authOptions = {
       }
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        token.name = user.name;
+        token.email = user.email;
+        token.image = user.image; // ✅ Aquí copiamos la imagen
+      }
+
       if (user?.email) {
         try {
           const [rows] = await pool.query(
@@ -61,6 +67,7 @@ export const authOptions = {
           console.error("❌ Error al obtener datos del usuario:", err);
         }
       }
+
       return token;
     },
 
@@ -77,5 +84,5 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-const handler = NextAuth(authOptions);  
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
