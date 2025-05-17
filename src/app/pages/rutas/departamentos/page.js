@@ -145,8 +145,8 @@ export default function DepartamentosPage() {
           Lista de departamentos
         </h1>
 
-        {/* Solo mostrar el selector y el input si NO es jefe */}
-        {session?.user?.role !== "Jefe_Departamento" && (
+        {/* Solo mostrar el selector y el input si NO es jefe ni contable */}
+        {!["Jefe_Departamento", "Contable"].includes(session?.user?.role) && (
           <>
             <DepartamentoSelector
               onSeleccion={setDepartamentoFiltrado}
@@ -183,8 +183,8 @@ export default function DepartamentosPage() {
                           Ver bolsas
                         </button>
                       </Link>
-                      {/* Solo mostrar eliminar si NO es jefe */}
-                      {session?.user?.role !== "Jefe_Departamento" && (
+                      {/* Solo mostrar eliminar si NO es jefe ni contable */}
+                      {!["Jefe_Departamento", "Contable"].includes(session?.user?.role) && (
                         <button
                           onClick={() => handleEliminarDepartamento(nombre)}
                           className="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer"
