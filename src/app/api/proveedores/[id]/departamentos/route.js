@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { pool } from '@/app/api/lib/db';
 
 export async function GET(req, { params }) {
-  const idProveedor = params.id;
+  // Asegurarte de que params esté resuelto correctamente antes de acceder a sus propiedades
+  const { id } = await params;  // Aquí se hace la espera de params si es necesario
+  const idProveedor = id;
+  
   try {
     const [rows] = await pool.query(
       'SELECT Id_Departamento FROM PROVEEDOR_DEPARTAMENTO WHERE Id_Proveedor = ?',

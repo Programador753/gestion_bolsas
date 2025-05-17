@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getDepartamentos } from '@/app/api/functions/select';
 import { addDepartamento } from '@/app/api/functions/select';
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
+import { pool } from '@/app/api/lib/db';
+
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
-    const departamentos = await getDepartamentos();
-    return NextResponse.json(departamentos);
+    const [departamentos] = await pool.query("SELECT * FROM DEPARTAMENTO");
+    return NextResponse.json({ departamentos });
   } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json({ error: 'Error al obtener departamentos' }, { status: 500 });
+    console.error("Error al obtener departamentos:", error);
+    return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
   }
 }
 

@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 import { pool } from '@/app/api/lib/db';
 import { getProveedores, addProveedor, deleteProveedor } from '@/app/api/functions/select';
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET() {
+    const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
-    const proveedores = await getProveedores();
-    return NextResponse.json(proveedores);
+    const [proveedores] = await pool.query("SELECT * FROM PROVEEDORES");
+    return NextResponse.json({ proveedores });
   } catch (error) {
-    console.error('Error fetching proveedores:', error);
-    return NextResponse.json({ error: 'Error fetching proveedores' }, { status: 500 });
+    console.error("Error al obtener proveedores:", error);
+    return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
   }
 }
 
@@ -47,3 +55,4 @@ export async function DELETE(req) {
     return NextResponse.json({ error: 'Error al eliminar proveedor' }, { status: 500 });
   }
 }
+

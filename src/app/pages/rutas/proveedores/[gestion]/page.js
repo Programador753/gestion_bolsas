@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -12,12 +12,15 @@ export default function GestionPage() {
   const [proveedor, setProveedor] = useState(null);
   const [departamentos, setDepartamentos] = useState([]);
   const [seleccionados, setSeleccionados] = useState([]);
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState("");
 
   const rol = session?.user?.role;
   const departamentoUsuario = session?.user?.departamento;
 
-  const idDepartamentoUsuario = session?.user?.id || session?.user?.departamento || session?.user?.Id_Departamento;
+  const idDepartamentoUsuario =
+    session?.user?.id ||
+    session?.user?.departamento ||
+    session?.user?.Id_Departamento;
 
   // Cargar datos al montar
   useEffect(() => {
@@ -25,8 +28,8 @@ export default function GestionPage() {
     const fetchData = async () => {
       try {
         // 1. Obtener proveedores
-        const proveedoresRes = await fetch('/api/proveedores');
-        if (!proveedoresRes.ok) throw new Error('Error al obtener proveedores');
+        const proveedoresRes = await fetch("/api/proveedores");
+        if (!proveedoresRes.ok) throw new Error("Error al obtener proveedores");
         const proveedores = await proveedoresRes.json();
         const proveedorSel = proveedores.find(
           (p) => p.nombre.toLowerCase() === nombre.toLowerCase()
@@ -34,8 +37,9 @@ export default function GestionPage() {
         setProveedor(proveedorSel);
 
         // 2. Obtener departamentos
-        const departamentosRes = await fetch('/api/departamentos');
-        if (!departamentosRes.ok) throw new Error('Error al obtener departamentos');
+        const departamentosRes = await fetch("/api/departamentos");
+        if (!departamentosRes.ok)
+          throw new Error("Error al obtener departamentos");
         const departamentosData = await departamentosRes.json();
 
         // Filtrar departamentos según el rol
@@ -44,15 +48,19 @@ export default function GestionPage() {
           departamentosFiltrados = departamentosData.filter(
             (dep) =>
               dep.Id_Departamento === idDepartamentoUsuario ||
-              dep.nombre.trim().toLowerCase() === String(departamentoUsuario).trim().toLowerCase()
+              dep.nombre.trim().toLowerCase() ===
+                String(departamentoUsuario).trim().toLowerCase()
           );
         }
         setDepartamentos(departamentosFiltrados);
 
         // 3. Obtener departamentos relacionados
         if (proveedorSel) {
-          const relacionadosRes = await fetch(`/api/proveedores/${proveedorSel.Id_Proveedor}/departamentos`);
-          if (!relacionadosRes.ok) throw new Error('Error al obtener departamentos relacionados');
+          const relacionadosRes = await fetch(
+            `/api/proveedores/${proveedorSel.Id_Proveedor}/departamentos`
+          );
+          if (!relacionadosRes.ok)
+            throw new Error("Error al obtener departamentos relacionados");
           const relacionados = await relacionadosRes.json();
           setSeleccionados(relacionados); // Array de Id_Departamento
         }
@@ -62,7 +70,7 @@ export default function GestionPage() {
       }
     };
     fetchData();
-  }, [nombre, session, rol, departamentoUsuario]);
+  }, [nombre, session, rol, departamentoUsuario, idDepartamentoUsuario]);
 
   // Manejar cambios en los checkboxes
   const handleCheckboxChange = (id) => {
@@ -74,9 +82,7 @@ export default function GestionPage() {
       if (!dep || dep.nombre !== departamentoUsuario) return;
     }
     setSeleccionados((prev) =>
-      prev.includes(id)
-        ? prev.filter((depId) => depId !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((depId) => depId !== id) : [...prev, id]
     );
   };
 
@@ -88,27 +94,31 @@ export default function GestionPage() {
     if (rol === "Jefe_Departamento") {
       const dep = departamentos.find((d) => d.nombre === departamentoUsuario);
       if (dep) {
-        departamentosAGuardar = seleccionados.filter((id) => id === dep.Id_Departamento);
+        departamentosAGuardar = seleccionados.filter(
+          (id) => id === dep.Id_Departamento
+        );
       }
     }
-    const res = await fetch('/api/proveedores/relacionar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/proveedores/relacionar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         idProveedor: proveedor.Id_Proveedor,
         departamentos: departamentosAGuardar,
       }),
     });
     if (res.ok) {
-      setMensaje('Cambios guardados con éxito');
+      setMensaje("Cambios guardados con éxito");
       // Recarga los departamentos relacionados desde el backend
-      const relacionadosRes = await fetch(`/api/proveedores/${proveedor.Id_Proveedor}/departamentos`);
+      const relacionadosRes = await fetch(
+        `/api/proveedores/${proveedor.Id_Proveedor}/departamentos`
+      );
       const relacionados = await relacionadosRes.json();
       setSeleccionados(relacionados);
-      setTimeout(() => setMensaje(''), 3000);
+      setTimeout(() => setMensaje(""), 3000);
     } else {
-      setMensaje('Error al guardar los cambios');
-      setTimeout(() => setMensaje(''), 3000);
+      setMensaje("Error al guardar los cambios");
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 
@@ -120,9 +130,19 @@ export default function GestionPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center pt-6 px-4 pb-4 relative">
+      <h1 className="text-3xl font-extrabold mb-6 text-red-600">
+        Gestión de Proveedor: {proveedor.nombre}
+      </h1>
       {mensaje && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg bg-green-600">
-          {mensaje}
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg 
+        ${mensaje.includes("éxito") ? "bg-green-600" : "bg-red-600"}`}
+        >
+          {mensaje 
+            .includes("éxito")
+            ? "Cambios guardados con éxito"
+            : "Error al guardar los cambios"}
+
         </div>
       )}
       {/* Botón Volver estático arriba a la izquierda */}
@@ -132,8 +152,19 @@ export default function GestionPage() {
           className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-1 ml-4 bg-transparent"
           aria-label="Volver"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Volver
         </button>
@@ -143,9 +174,13 @@ export default function GestionPage() {
           {proveedor.nombre}
         </h1>
         <div>
-          <h2 className="text-2xl font-semibold mb-4">
-            Departamentos en red
-          </h2>
+          <h2 className="text-xl font-bold mb-4">Departamentos relacionados</h2>
+          <p className="text-gray-600 mb-4">
+            Selecciona los departamentos que deseas relacionar con el proveedor.
+            {rol === "Contable" && " (No puedes modificar)"}
+            {rol === "Jefe_Departamento" &&
+              ` (Solo puedes modificar tu departamento: ${departamentoUsuario})`}
+          </p>
           <div className="space-y-3">
             {departamentos.map((dep) => (
               <div
@@ -159,8 +194,9 @@ export default function GestionPage() {
                   checked={seleccionados.includes(dep.Id_Departamento)}
                   onChange={() => handleCheckboxChange(dep.Id_Departamento)}
                   disabled={
-                    (rol === "Contable") ||
-                    (rol === "Jefe_Departamento" && dep.nombre !== departamentoUsuario)
+                    rol === "Contable" ||
+                    (rol === "Jefe_Departamento" &&
+                      dep.nombre !== departamentoUsuario)
                   }
                 />
               </div>

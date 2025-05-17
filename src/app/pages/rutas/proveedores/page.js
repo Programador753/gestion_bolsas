@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
-import Link from 'next/link';
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function ProveedoresPage() {
   const { data: session, status } = useSession();
   const [proveedores, setProveedores] = useState([]);
-  const [nuevoProveedor, setNuevoProveedor] = useState('');
-  const [mensaje, setMensaje] = useState('');
-  const [tipoMensaje, setTipoMensaje] = useState('');
+  const [nuevoProveedor, setNuevoProveedor] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [tipoMensaje, setTipoMensaje] = useState("");
   const router = useRouter();
 
   // Cargar proveedores según el rol
@@ -18,18 +18,23 @@ export default function ProveedoresPage() {
     if (!session) return;
 
     const rol = session.user?.role;
-    const idDepartamento = session.user?.id || session.user?.departamento || session.user?.Id_Departamento;
+    const idDepartamento =
+      session.user?.id ||
+      session.user?.departamento ||
+      session.user?.Id_Departamento;
 
     const fetchProveedores = async () => {
       try {
         let data = [];
         if (rol === "Jefe_Departamento" && idDepartamento) {
           // Solo proveedores relacionados con su departamento
-          const res = await fetch(`/api/proveedores/departamento/${idDepartamento}`);
+          const res = await fetch(
+            `/api/proveedores/departamento/${idDepartamento}`
+          );
           data = await res.json();
         } else {
           // Todos los proveedores
-          const res = await fetch('/api/proveedores');
+          const res = await fetch("/api/proveedores");
           data = await res.json();
         }
         setProveedores(data);
@@ -45,51 +50,54 @@ export default function ProveedoresPage() {
     if (!nuevoProveedor.trim()) return;
 
     try {
-      console.log('Enviando proveedor:', nuevoProveedor.trim()); // Depuración
-      const res = await fetch('/api/proveedores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      console.log("Enviando proveedor:", nuevoProveedor.trim()); // Depuración
+      const res = await fetch("/api/proveedores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nombre: nuevoProveedor.trim() }),
       });
 
-      if (!res.ok) throw new Error('Error al añadir el proveedor');
+      if (!res.ok) throw new Error("Error al añadir el proveedor");
 
       const nuevoProveedorData = await res.json(); // Obtén el id, nombre y estado del proveedor
       setProveedores([...proveedores, nuevoProveedorData]);
-      setNuevoProveedor('');
-      setMensaje('Añadido con éxito');
-      setTipoMensaje('success');
+      setNuevoProveedor("");
+      setMensaje("Añadido con éxito");
+      setTipoMensaje("success");
     } catch (error) {
       console.error("Error agregando proveedor:", error);
-      setMensaje('Error al añadir el proveedor');
-      setTipoMensaje('error');
+      setMensaje("Error al añadir el proveedor");
+      setTipoMensaje("error");
     } finally {
-      setTimeout(() => setMensaje(''), 3000);
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 
-  const handleEliminarProveedor = async (nombre) => { // Función para eliminar un proveedor
-    const confirmacion = window.confirm('¿Estás seguro de eliminar el proveedor?'); // Confirmación antes de eliminar
+  const handleEliminarProveedor = async (nombre) => {
+    // Función para eliminar un proveedor
+    const confirmacion = window.confirm(
+      "¿Estás seguro de eliminar el proveedor?"
+    ); // Confirmación antes de eliminar
     if (!confirmacion) return;
 
     try {
-      const res = await fetch('/api/proveedores', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/proveedores", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nombre }),
       });
 
-      if (!res.ok) throw new Error('Error al eliminar el proveedor');
+      if (!res.ok) throw new Error("Error al eliminar el proveedor");
 
       setProveedores(proveedores.filter((prov) => prov.nombre !== nombre));
-      setMensaje('Eliminado con éxito');
-      setTipoMensaje('success');
+      setMensaje("Eliminado con éxito");
+      setTipoMensaje("success");
     } catch (error) {
       console.error("Error eliminando proveedor:", error);
-      setMensaje('Error al eliminar el proveedor');
-      setTipoMensaje('error');
+      setMensaje("Error al eliminar el proveedor");
+      setTipoMensaje("error");
     } finally {
-      setTimeout(() => setMensaje(''), 3000);
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 
@@ -101,8 +109,9 @@ export default function ProveedoresPage() {
       {/* Pop-up flotante */}
       {mensaje && (
         <div
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
-            }`}
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${
+            tipoMensaje === "success" ? "bg-green-600" : "bg-red-600"
+          }`}
         >
           {mensaje}
         </div>
@@ -147,7 +156,10 @@ export default function ProveedoresPage() {
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
             <tbody>
               {proveedores.map((proveedor, index) => (
-                <tr key={index} className="bg-white border-b hover:bg-gray-50 transition">
+                <tr
+                  key={index}
+                  className="bg-white border-b hover:bg-gray-50 transition"
+                >
                   <td>
                     <p className="px-2 py-3 font-semibold text-gray-800 text-base">
                       {proveedor.nombre}
@@ -155,14 +167,18 @@ export default function ProveedoresPage() {
                   </td>
                   <td className="px-2 py-3">
                     <div className="flex justify-end font-medium text-gray-800">
-                      <Link href={`/pages/rutas/proveedores/${proveedor.nombre}`}>
+                      <Link
+                        href={`/pages/rutas/proveedores/${proveedor.nombre}`}
+                      >
                         <button className="cursor-pointer bg-red-600 text-white px-5 py-2.5 rounded-md text-base hover:bg-red-700 transition duration-200">
                           Gestionar
                         </button>
                       </Link>
                       {rol === "Administrador" && (
                         <button
-                          onClick={() => handleEliminarProveedor(proveedor.nombre)}
+                          onClick={() =>
+                            handleEliminarProveedor(proveedor.nombre)
+                          }
                           className="ml-2 cursor-pointer bg-gray-600 text-white px-5 py-2.5 rounded-md text-base hover:bg-gray-700 transition duration-200"
                         >
                           Eliminar
@@ -182,8 +198,6 @@ export default function ProveedoresPage() {
             </tbody>
           </table>
         </div>
-
-
       </main>
     </div>
   );

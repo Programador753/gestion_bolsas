@@ -38,11 +38,11 @@ export default function OrdenCompraPage() {
   }, []);
 
   useEffect(() => {
-    // Si es jefe de departamento, autoasigna el departamento y bloquea selector
-    if (isJefeDepartamento) {
-      setDepartamento(session?.user?.departamento || "");
-    }
-  }, [session]);
+  // Si es jefe de departamento, autoasigna el departamento y bloquea selector
+  if (isJefeDepartamento) {
+    setDepartamento(session?.user?.departamento || "");
+  }
+}, [session, isJefeDepartamento]);
 
   const fetchOrdenes = async () => {
     setLoading(true);
