@@ -75,7 +75,13 @@ export default function OrdenCompraPage() {
     try {
       const res = await fetch("/api/departamentos");
       const data = await res.json();
-      setDepartamentos(data || []);
+      // Asegura que siempre sea un array de objetos con nombre y/o Id_Departamento
+      const lista = Array.isArray(data)
+        ? data
+        : Array.isArray(data.departamentos)
+          ? data.departamentos
+          : [];
+      setDepartamentos(lista);
     } catch (err) {
       console.error("Error al cargar departamentos:", err);
     } finally {
@@ -85,7 +91,7 @@ export default function OrdenCompraPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!codigo || !numeroInversion || !fecha || !gasto || !proveedor || !departamento) {
+    if (!codigo || !fecha || !gasto || !proveedor || !departamento) {
       alert("Por favor completa todos los campos obligatorios.");
       return;
     }
@@ -178,7 +184,6 @@ export default function OrdenCompraPage() {
           placeholder="Número Inversión"
           value={numeroInversion}
           onChange={(e) => setNumeroInversion(e.target.value)}
-          required
           className="border p-2 rounded"
         />
         <input

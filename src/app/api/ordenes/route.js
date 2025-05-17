@@ -82,7 +82,8 @@ export async function POST(req) {
     Id_Proveedor,
     es_fungible,
     es_inventariado,
-    Id_B_Presupuesto // para presupuesto
+    Id_B_Presupuesto, // para presupuesto
+    Id_Departamento   // <-- Añade aquí el campo que faltaba
   } = await req.json();
 
   const session = await getServerSession(authOptions);
@@ -106,11 +107,6 @@ export async function POST(req) {
       );
     }
 
-    const queryInsertOrden = `
-      INSERT INTO ORDEN_COMPRA (Codigo, NumeroInversion, Tipo, Fecha, Gasto, Comentario, Id_Usuario, Id_Proveedor, es_fungible, es_inventariado)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
     // Validar y formatear fecha a yyyy-mm-dd
     let fechaVal = null;
     try {
@@ -121,6 +117,72 @@ export async function POST(req) {
 
     // Si NumeroInversion no es número válido, usar 0
     const numeroInversionVal = Number(NumeroInversion) > 0 ? Number(NumeroInversion) : 0;
+
+    // Validar Id_Departamento antes de insertar la orden
+    // Si es jefe de departamento, forzar el departamento del usuario
+    let idDepartamentoFinal = Id_Departamento;
+    if (usuario.rol === "Jefe_Departamento") {
+      idDepartamentoFinal = usuario.Id_Departamento;
+    }
+    if (!idDepartamentoFinal || isNaN(Number(idDepartamentoFinal))) {
+      return NextResponse.json(
+        { error: "El departamento seleccionado no es válido." },
+        { status: 400 }
+      );
+    }
+
+    // Validar y preparar Id_Binversion y Id_B_Presupuesto
+    let idBinversionFinal = null;
+    let idPresupuestoFinal = null;
+    const yearOrden = new Date(Fecha).getFullYear();
+
+    if (numeroInversionVal > 0) {
+      // Lógica para inversión
+      const [binversiones] = await pool.query(
+        `SELECT bi.Id 
+         FROM B_INVERSION bi
+         JOIN BOLSA b ON bi.Id_Bolsa = b.Id
+         WHERE b.Id_Departamento = ? AND b.Anio = ?
+         LIMIT 1`,
+        [idDepartamentoFinal, yearOrden]
+      );
+
+      if (binversiones.length === 0) {
+        return NextResponse.json(
+          { error: `No hay bolsa de inversión disponible para el departamento en el año ${yearOrden}` },
+          { status: 400 }
+        );
+      }
+
+      idBinversionFinal = binversiones[0].Id;
+    } else {
+      // Si no hay inversión, buscar presupuesto
+      const [presupuestos] = await pool.query(
+        `SELECT bp.Id
+         FROM B_PRESUPUESTO bp
+         JOIN BOLSA b ON bp.Id_Bolsa = b.Id
+         WHERE b.Id_Departamento = ? AND b.Anio = ?
+         LIMIT 1`,
+        [idDepartamentoFinal, yearOrden]
+      );
+
+      if (presupuestos.length === 0) {
+        return NextResponse.json(
+          { error: `No hay bolsa de presupuesto disponible para el departamento en el año ${yearOrden}` },
+          { status: 400 }
+        );
+      }
+
+      idPresupuestoFinal = presupuestos[0].Id;
+    }
+
+    // Insertar en ORDEN_COMPRA_TEMP
+    const queryInsertOrden = `
+      INSERT INTO ORDEN_COMPRA_TEMP
+      (Codigo, NumeroInversion, Tipo, Fecha, Gasto, Comentario, Id_Usuario, Id_Proveedor, 
+       es_fungible, es_inventariado, Id_Departamento, Id_Binversion, Id_B_Presupuesto)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
     const [result] = await pool.query(queryInsertOrden, [
       Codigo,
@@ -133,51 +195,15 @@ export async function POST(req) {
       Id_Proveedor,
       es_fungible ? 'Y' : 'N',
       es_inventariado ? 'Y' : 'N',
+      idDepartamentoFinal,
+      idBinversionFinal,  // Usar el valor procesado
+      idPresupuestoFinal  // Usar el valor procesado
     ]);
 
     const newOrdenId = result.insertId;
 
-    // Insertar inversión si aplica
-    if (numeroInversionVal > 0) {
-      if (!Id_Binversion || Number(Id_Binversion) <= 0) {
-        return NextResponse.json({ error: "Falta Id_Binversion válido para la inversión" }, { status: 400 });
-      }
-
-      const [inversionRows] = await pool.query(
-        'SELECT Id FROM B_INVERSION WHERE Id = ?',
-        [Id_Binversion]
-      );
-
-      if (inversionRows.length === 0) {
-        return NextResponse.json(
-          { error: `No existe inversión con Id ${Id_Binversion}` },
-          { status: 400 }
-        );
-      }
-
-      await pool.query(
-        `INSERT INTO OC_INVERSION (Id_OrderCompra, Id_Binversion) VALUES (?, ?)`,
-        [newOrdenId, Id_Binversion]
-      );
-    } else if (Id_B_Presupuesto) {
-      // Insertar presupuesto si aplica
-      const [presupuestoRows] = await pool.query(
-        'SELECT Id FROM B_PRESUPUESTO WHERE Id = ?',
-        [Id_B_Presupuesto]
-      );
-
-      if (presupuestoRows.length === 0) {
-        return NextResponse.json(
-          { error: `No existe presupuesto con Id ${Id_B_Presupuesto}` },
-          { status: 400 }
-        );
-      }
-
-      await pool.query(
-        `INSERT INTO OC_PRESUPUESTO (Id_OrderCompra, Id_B_Presupuesto) VALUES (?, ?)`,
-        [newOrdenId, Id_B_Presupuesto]
-      );
-    }
+    // Ya no necesitamos insertar manualmente en OC_INVERSION u OC_PRESUPUESTO
+    // El trigger se encargará de eso
 
     // Obtener nombre proveedor
     const [[proveedor]] = await pool.query(
