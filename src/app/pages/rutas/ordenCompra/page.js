@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 export default function OrdenCompraPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [ordenesCompra, setOrdenesCompra] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [codigo, setCodigo] = useState("");
@@ -18,7 +18,6 @@ export default function OrdenCompraPage() {
   const [loading, setLoading] = useState(false);
   const [loadingProveedores, setLoadingProveedores] = useState(false);
 
-  // Función para verificar si el usuario tiene permiso para eliminar
   const canDelete = () => {
     return session?.user?.role === "Administrador" || session?.user?.role === "Jefe_Departamento";
   };
@@ -29,15 +28,11 @@ export default function OrdenCompraPage() {
   }, []);
 
   const fetchOrdenes = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await fetch("/api/ordenes");
       const data = await res.json();
-      if (res.ok) {
-        setOrdenesCompra(data.ordenes || []);
-      } else {
-        console.error("Error:", data.error);
-      }
+      setOrdenesCompra(data.ordenes || []);
     } catch (err) {
       console.error("Error al cargar órdenes:", err);
     } finally {
@@ -46,31 +41,13 @@ export default function OrdenCompraPage() {
   };
 
   const fetchProveedores = async () => {
+    setLoadingProveedores(true);
     try {
-      setLoadingProveedores(true);
-      console.log("Intentando cargar proveedores...");
-      
       const res = await fetch("/api/proveedores");
-      console.log("Respuesta de API proveedores:", res.status);
-      
-      if (!res.ok) {
-        throw new Error(`Error en la respuesta: ${res.status}`);
-      }
-      
       const data = await res.json();
-      console.log("Datos de proveedores recibidos:", data);
-      
-      if (data.proveedores) {
-        setProveedores(data.proveedores);
-      } else if (Array.isArray(data)) {
-        setProveedores(data);
-      } else {
-        console.error("Formato de datos inesperado:", data);
-        setProveedores([]);
-      }
+      setProveedores(data.proveedores || data || []);
     } catch (err) {
       console.error("Error al cargar proveedores:", err);
-      alert("Error al cargar los proveedores. Consulta la consola para más detalles.");
     } finally {
       setLoadingProveedores(false);
     }
@@ -82,29 +59,24 @@ export default function OrdenCompraPage() {
       alert("Por favor completa todos los campos obligatorios.");
       return;
     }
-    
-    const esFungible = tipoProducto === "fungible" ? "S" : "N";
-    const esInventariable = tipoProducto === "inventariable" ? "S" : "N";
 
     const newOrden = {
       Codigo: codigo,
       NumeroInversion: numeroInversion,
-      Tipo: tipo, // Este campo puede estar vacío
+      Tipo: tipo,
       Fecha: fecha,
       Gasto: gasto,
       Comentario: comentario,
       Id_Proveedor: proveedor,
-      es_fungible: esFungible,
-      es_inventariable: esInventariable,
+      es_fungible: tipoProducto === "fungible" ? "S" : "N",
+      es_inventariable: tipoProducto === "inventariable" ? "S" : "N",
     };
 
     try {
       setLoading(true);
       const res = await fetch("/api/ordenes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newOrden),
       });
 
@@ -113,59 +85,37 @@ export default function OrdenCompraPage() {
       if (res.ok) {
         setOrdenesCompra((prev) => [...prev, data.orden]);
         resetForm();
-        alert("Orden de compra agregada con éxito");
+        alert("Orden agregada con éxito");
       } else {
-        console.error("Error:", data.error);
-        alert(`Error: ${data.error || "Error al agregar la orden"}`);
+        alert(data.error || "Error al agregar la orden");
       }
     } catch (err) {
-      console.error("Error al agregar orden:", err);
-      alert("Error al agregar la orden de compra");
+      console.error(err);
+      alert("Error al agregar la orden");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-  if (!confirm("¿Estás seguro de que deseas eliminar esta orden de compra?")) {
-    return;
-  }
-
-  try {
+    if (!confirm("¿Seguro que quieres eliminar esta orden?")) return;
     setLoading(true);
-    
-    const res = await fetch(`/api/ordenes/${id}`, {
-      method: "DELETE"
-    });
-    
-    const textResponse = await res.text();
-    console.log("Respuesta texto:", textResponse);
-    
-    let data;
     try {
-      data = textResponse ? JSON.parse(textResponse) : {};
-    } catch (parseError) {
-      console.error("Error al parsear JSON:", parseError, "Texto recibido:", textResponse);
-      alert("Error: La respuesta del servidor no es un JSON válido");
+      const res = await fetch(`/api/ordenes/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setOrdenesCompra((prev) => prev.filter((orden) => orden.Id !== id));
+        alert("Orden eliminada");
+      } else {
+        alert("Error al eliminar la orden");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar");
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    if (res.ok) {
+  };
 
-      setOrdenesCompra(ordenesCompra.filter(orden => orden.Id !== id));
-      alert("Orden de compra eliminada con éxito");
-    } else {
-      console.error("Error al eliminar:", data.error || "Error desconocido");
-      alert(`Error: ${data.error || "Error al eliminar la orden"}`);
-    }
-  } catch (err) {
-    console.error("Error completo:", err);
-    alert(`Error: ${err.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
   const resetForm = () => {
     setCodigo("");
     setNumeroInversion("");
@@ -178,155 +128,80 @@ export default function OrdenCompraPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-grow container mx-auto p-4">
-        
-        <h1 className="text-2xl font-bold mb-2 text-center text-red-600">
-          Órdenes de Compra
-        </h1>
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-3xl font-bold text-center text-red-600 mb-6">Órdenes de Compra</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8">
-        <h2 className="text-xl font-semibold text-red-600 mb-4">Agregar Orden de Compra</h2>
-        <div className="grid grid-cols-1 gap-4">
-          <input
-            type="text"
-            placeholder="Código"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            required
-            className="p-2 border border-gray-300 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Número de Inversión"
-            value={numeroInversion}
-            onChange={(e) => setNumeroInversion(e.target.value)}
-            required
-            className="p-2 border border-gray-300 rounded"
-          />
-          <input
-            type="text"
-            placeholder="Tipo"
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            // No tiene required para que sea opcional
-            className="p-2 border border-gray-300 rounded"
-          />
-          <input
-            type="date"
-            placeholder="Fecha"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            required
-            className="p-2 border border-gray-300 rounded"
-          />
-          <input
-            type="number"
-            placeholder="Gasto"
-            value={gasto}
-            onChange={(e) => setGasto(e.target.value)}
-            required
-            className="p-2 border border-gray-300 rounded"
-          />
-          <select
-            value={proveedor}
-            onChange={(e) => setProveedor(e.target.value)}
-            className="p-2 border border-gray-300 rounded"
-            required
-          >
-            <option value="">Selecciona Proveedor</option>
-            {loadingProveedores ? (
-              <option value="" disabled>Cargando proveedores...</option>
-            ) : proveedores && proveedores.length > 0 ? (
-              proveedores.map((prov) => {
-                const id = prov.Id_Proveedor || prov.id || prov.ID;
-                const nombre = prov.nombre || prov.name || prov.Nombre;
-                
-                return (
-                  <option key={id} value={id}>
-                    {nombre}
-                  </option>
-                );
-              })
-            ) : (
-              <option value="" disabled>No hay proveedores disponibles</option>
-            )}
-          </select>
-          <select
-            value={tipoProducto}
-            onChange={(e) => setTipoProducto(e.target.value)}
-            className="p-2 border border-gray-300 rounded"
-          >
-            <option value="fungible">Fungible</option>
-            <option value="inventariable">Inventariable</option>
-          </select>
-          <textarea
-            placeholder="Comentario"
-            value={comentario}
-            onChange={(e) => setComentario(e.target.value)}
-            className="p-2 border border-gray-300 rounded"
-          />
-          <button 
-            type="submit" 
-            className="mt-4 p-2 bg-red-600 text-white rounded hover:bg-red-700"
-            disabled={loading}
-          >
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <input type="text" placeholder="Código" value={codigo} onChange={(e) => setCodigo(e.target.value)} required className="border p-2 rounded" />
+        <input type="number" placeholder="Número Inversión" value={numeroInversion} onChange={(e) => setNumeroInversion(e.target.value)} required className="border p-2 rounded" />
+        <input type="text" placeholder="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className="border p-2 rounded" />
+        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required className="border p-2 rounded" />
+        <input type="number" placeholder="Gasto" value={gasto} onChange={(e) => setGasto(e.target.value)} required className="border p-2 rounded" />
+        <select value={proveedor} onChange={(e) => setProveedor(e.target.value)} required className="border p-2 rounded">
+          <option value="">Selecciona Proveedor</option>
+          {proveedores.map((prov) => (
+            <option key={prov.Id_Proveedor || prov.id} value={prov.Id_Proveedor || prov.id}>
+              {prov.nombre || prov.name}
+            </option>
+          ))}
+        </select>
+        <select value={tipoProducto} onChange={(e) => setTipoProducto(e.target.value)} className="border p-2 rounded">
+          <option value="fungible">Fungible</option>
+          <option value="inventariable">Inventariable</option>
+        </select>
+        <textarea placeholder="Comentario" value={comentario} onChange={(e) => setComentario(e.target.value)} className="border p-2 rounded col-span-1 md:col-span-2" />
+
+        <div className="flex flex-col md:flex-row gap-4 col-span-1 md:col-span-2">
+          <button type="submit" disabled={loading} className="flex-1 bg-red-600 hover:bg-red-700 text-white text-lg py-3 rounded">
             {loading ? "Procesando..." : "Agregar Orden"}
+          </button>
+          <button type="button" onClick={fetchOrdenes} className="bg-black text-white py-2 px-4 rounded text-sm self-center">
+            Refrescar
           </button>
         </div>
       </form>
 
-      {loading && <p className="text-center">Cargando...</p>}
-
-      {ordenesCompra.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead className="bg-red-100 text-red-600 text-sm">
-              <tr>
-                <th className="px-4 py-2 border">Código</th>
-                <th className="px-4 py-2 border">Inversión</th>
-                <th className="px-4 py-2 border">Tipo</th>
-                <th className="px-4 py-2 border">Fecha</th>
-                <th className="px-4 py-2 border">Gasto</th>
-                <th className="px-4 py-2 border">Usuario</th>
-                <th className="px-4 py-2 border">Departamento</th>
-                <th className="px-4 py-2 border">Proveedor</th>
-                <th className="px-4 py-2 border">Comentario</th>
-                {canDelete() && <th className="px-4 py-2 border">Acciones</th>}
-              </tr>
-            </thead>
-            <tbody className="text-sm text-gray-700">
-              {ordenesCompra.map((orden) => (
-                <tr key={orden.Id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{orden.Codigo}</td>
-                  <td className="px-4 py-2 border">{orden.NumeroInversion}</td>
-                  <td className="px-4 py-2 border">{orden.Tipo}</td>
-                  <td className="px-4 py-2 border">{new Date(orden.Fecha).toLocaleDateString()}</td>
-                  <td className="px-4 py-2 border">{orden.Gasto} €</td>
-                  <td className="px-4 py-2 border">{orden.nombre_usuario}</td>
-                  <td className="px-4 py-2 border">{orden.nombre_departamento}</td>
-                  <td className="px-4 py-2 border">{orden.nombre_proveedor}</td>
-                  <td className="px-4 py-2 border">{orden.Comentario}</td>
-                  {canDelete() && (
-                    <td className="px-4 py-2 border">
-                      <button
-                        onClick={() => handleDelete(orden.Id)}
-                        className="p-1 bg-red-600 text-white rounded hover:bg-red-700"
-                        disabled={loading}
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  )}
-                </tr>
+      {/* Tabla */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border rounded">
+          <thead className="bg-red-100 text-red-700">
+            <tr>
+              {["Código", "Inversión", "Tipo", "Fecha", "Gasto", "Usuario", "Departamento", "Proveedor", "Comentario"].map((head) => (
+                <th key={head} className="border px-3 py-2 text-left">{head}</th>
               ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-gray-600 mt-6">No hay órdenes registradas.</p>
-      )}
-    </div>
+              {canDelete() && <th className="border px-3 py-2 text-left">Acciones</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {ordenesCompra.length === 0 && (
+              <tr>
+                <td colSpan={10} className="text-center py-4 text-gray-500">No hay órdenes registradas</td>
+              </tr>
+            )}
+            {ordenesCompra.map((orden) => (
+              <tr key={orden.Id} className="hover:bg-gray-50">
+                <td className="border px-3 py-1">{orden.Codigo}</td>
+                <td className="border px-3 py-1">{orden.NumeroInversion}</td>
+                <td className="border px-3 py-1">{orden.Tipo}</td>
+                <td className="border px-3 py-1">{new Date(orden.Fecha).toLocaleDateString()}</td>
+                <td className="border px-3 py-1">{orden.Gasto} €</td>
+                <td className="border px-3 py-1">{orden.nombre_usuario}</td>
+                <td className="border px-3 py-1">{orden.nombre_departamento}</td>
+                <td className="border px-3 py-1">{orden.nombre_proveedor}</td>
+                <td className="border px-3 py-1">{orden.Comentario}</td>
+                {canDelete() && (
+                  <td className="border px-3 py-1">
+                    <button onClick={() => handleDelete(orden.Id)} className="text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded">
+                      Eliminar
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
