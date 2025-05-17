@@ -25,12 +25,31 @@ export default function AsignarProveedoresPage() {
   useEffect(() => {
     if (!idDepartamento) return;
     const fetchProveedores = async () => {
-      const resAll = await fetch('/api/proveedores');
-      const all = await resAll.json();
-      const resAsignados = await fetch(`/api/proveedores/departamento/${idDepartamento}`);
-      const asignados = await resAsignados.json();
-      const asignadosIds = asignados.map(p => p.Id_Proveedor);
-      setProveedores(all.filter(p => !asignadosIds.includes(p.Id_Proveedor)));
+      try {
+        const resAll = await fetch('/api/proveedores');
+        const allData = await resAll.json();
+        // Asegurar que tenemos un array de proveedores
+        const allProveedores = Array.isArray(allData) 
+          ? allData 
+          : Array.isArray(allData.proveedores)
+            ? allData.proveedores
+            : [];
+
+        const resAsignados = await fetch(`/api/proveedores/departamento/${idDepartamento}`);
+        const asignadosData = await resAsignados.json();
+        const asignados = Array.isArray(asignadosData)
+          ? asignadosData
+          : Array.isArray(asignadosData.proveedores)
+            ? asignadosData.proveedores
+            : [];
+
+        const asignadosIds = asignados.map(p => p.Id_Proveedor);
+        setProveedores(allProveedores.filter(p => !asignadosIds.includes(p.Id_Proveedor)));
+      } catch (error) {
+        console.error('Error al cargar proveedores:', error);
+        setMensaje('Error al cargar proveedores');
+        setTipoMensaje('error');
+      }
     };
     fetchProveedores();
   }, [idDepartamento]);
