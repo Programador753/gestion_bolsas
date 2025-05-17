@@ -128,7 +128,7 @@ export default function OrdenCompraPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="flex-grow container mx-auto p-4 min-h-screen">
       <h1 className="text-3xl font-bold text-center text-red-600 mb-6">Órdenes de Compra</h1>
 
       {/* Formulario */}
