@@ -215,8 +215,11 @@ export default function OrdenCompraPage() {
           className="border p-2 rounded"
         >
           <option value="">Selecciona Proveedor</option>
-          {proveedores.map((prov) => (
-            <option key={prov.Id_Proveedor || prov.id} value={prov.Id_Proveedor || prov.id}>
+          {proveedores.map((prov, index) => (
+            <option 
+              key={`prov-${prov.Id_Proveedor || prov.id}-${index}`}
+              value={prov.Id_Proveedor || prov.id}
+            >
               {prov.nombre || prov.name}
             </option>
           ))}
@@ -239,8 +242,11 @@ export default function OrdenCompraPage() {
             className="border p-2 rounded"
           >
             <option value="">Selecciona Departamento</option>
-            {(Array.isArray(departamentos) ? departamentos : []).map((dep) => (
-              <option key={dep.Id_Departamento || dep.id} value={dep.Id_Departamento || dep.id}>
+            {(Array.isArray(departamentos) ? departamentos : []).map((dep, index) => (
+              <option 
+                key={`dep-${dep.Id_Departamento || dep.id}-${index}`}
+                value={dep.Id_Departamento || dep.id}
+              >
                 {dep.nombre || dep.name}
               </option>
             ))}
