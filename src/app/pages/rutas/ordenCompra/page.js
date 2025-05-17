@@ -60,7 +60,7 @@ export default function OrdenCompraPage() {
   const fetchProveedores = async () => {
     setLoadingProveedores(true);
     try {
-      const res = await fetch("/api/proveedores");
+      const res = await fetch("/api/proveedores/ordenes");
       const data = await res.json();
       setProveedores(data.proveedores || data || []);
     } catch (err) {
