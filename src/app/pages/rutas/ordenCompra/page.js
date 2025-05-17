@@ -29,7 +29,7 @@ export default function OrdenCompraPage() {
 
   // Detecta si el usuario es jefe de departamento
   const isJefeDepartamento = session?.user?.role === "Jefe_Departamento";
-  const isAdmin = session?.user?.role === "Administrador";
+  // const isAdmin = session?.user?.role === "Administrador";
 
   useEffect(() => {
     fetchOrdenes();
@@ -234,7 +234,7 @@ export default function OrdenCompraPage() {
             className="border p-2 rounded"
           >
             <option value="">Selecciona Departamento</option>
-            {departamentos.map((dep) => (
+            {(Array.isArray(departamentos) ? departamentos : []).map((dep) => (
               <option key={dep.Id_Departamento || dep.id} value={dep.Id_Departamento || dep.id}>
                 {dep.nombre || dep.name}
               </option>
