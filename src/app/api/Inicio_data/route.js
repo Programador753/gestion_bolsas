@@ -22,7 +22,7 @@ export async function GET(request) {
           END AS tipo
       FROM ORDEN_COMPRA oc
       LEFT JOIN USUARIO u ON oc.Id_Usuario = u.Id_Usuario
-      LEFT JOIN DEPARTAMENTO d ON u.Id_Departamento = d.Id_Departamento
+      LEFT JOIN DEPARTAMENTO d ON oc.Id_Departamento = d.Id_Departamento
       LEFT JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
       LEFT JOIN OC_INVERSION oci ON oc.Id = oci.Id_OrderCompra
       LEFT JOIN B_INVERSION bi ON oci.Id_Binversion = bi.Id
@@ -34,7 +34,7 @@ export async function GET(request) {
       SELECT SUM(oc.Gasto) AS gasto_total, d.Nombre AS departamento
       FROM ORDEN_COMPRA oc
       JOIN USUARIO u ON oc.Id_Usuario = u.Id_Usuario
-      JOIN DEPARTAMENTO d ON u.Id_Departamento = d.Id_Departamento
+      JOIN DEPARTAMENTO d ON oc.Id_Departamento = d.Id_Departamento
       GROUP BY d.Id_Departamento;
     `);
 

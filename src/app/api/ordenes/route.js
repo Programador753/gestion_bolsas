@@ -30,7 +30,7 @@ export async function GET(req) {
     }
 
     let query = `
-      SELECT 
+      SELECT
         oc.Id,
         oc.Codigo,
         oc.NumeroInversion,
@@ -45,7 +45,7 @@ export async function GET(req) {
         p.nombre AS nombre_proveedor
       FROM ORDEN_COMPRA oc
       JOIN USUARIO u ON oc.Id_Usuario = u.Id_Usuario
-      JOIN DEPARTAMENTO d ON u.Id_Departamento = d.Id_Departamento
+      JOIN DEPARTAMENTO d ON oc.Id_Departamento = d.Id_Departamento
       JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
     `;
 
