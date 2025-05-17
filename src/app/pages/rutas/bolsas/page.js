@@ -79,7 +79,6 @@ export default function Bolsas() {
             Departamento: {session.user.departamento}
           </h2>
         )}
-        <p className="mb-4">Aquí puedes ver todas las bolsas de todos los departamentos por año.</p>
 
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           {session?.user?.role !== "Jefe_Departamento" && (

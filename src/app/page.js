@@ -38,12 +38,12 @@ const InicioPage = () => {
           return;
         }
 
-        console.log("Datos devueltos por la API:", data); // Log para depuración
+        // console.log("Datos devueltos por la API:", data); // Log para depuración
 
         // Logs adicionales para inspeccionar las propiedades de los datos
-        console.log("Ordenes:", data.ordenes);
-        console.log("Gasto por Departamento:", data.gasto);
-        console.log("Presupuesto por Departamento:", data.presupuesto);
+        // console.log("Ordenes:", data.ordenes);
+        // console.log("Gasto por Departamento:", data.gasto);
+        // console.log("Presupuesto por Departamento:", data.presupuesto);
 
         setOrdenes(data.ordenes || []);
         setGastoPorDepartamento(data.gasto || []);
@@ -139,9 +139,9 @@ const InicioPage = () => {
     };
   });
 
-  console.log("Filtered Gasto:", filteredGasto);
-  console.log("Filtered Presupuesto:", filteredPresupuesto);
-  console.log("Ordenes:", ordenes);
+  // console.log("Filtered Gasto:", filteredGasto);
+  // console.log("Filtered Presupuesto:", filteredPresupuesto);
+  // console.log("Ordenes:", ordenes);
 
   return (
     <div className="flex flex-col min-h-screen">
