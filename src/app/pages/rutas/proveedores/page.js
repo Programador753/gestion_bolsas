@@ -31,11 +31,21 @@ export default function ProveedoresPage() {
           const res = await fetch(
             `/api/proveedores/departamento/${idDepartamento}`
           );
-          data = await res.json();
+          const resData = await res.json();
+          data = Array.isArray(resData)
+            ? resData
+            : Array.isArray(resData.proveedores)
+              ? resData.proveedores
+              : [];
         } else {
           // Todos los proveedores
           const res = await fetch("/api/proveedores");
-          data = await res.json();
+          const resData = await res.json();
+          data = Array.isArray(resData)
+            ? resData
+            : Array.isArray(resData.proveedores)
+              ? resData.proveedores
+              : [];
         }
         setProveedores(data);
       } catch (error) {

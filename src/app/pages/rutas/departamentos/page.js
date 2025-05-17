@@ -52,7 +52,13 @@ export default function DepartamentosPage() {
     try {
       const res = await fetch('/api/departamentos');
       const data = await res.json();
-      const nombres = data.map((item) => item.nombre);
+      // Si el backend devuelve {departamentos: [...]}, usa ese array
+      const lista = Array.isArray(data)
+        ? data
+        : Array.isArray(data.departamentos)
+          ? data.departamentos
+          : [];
+      const nombres = lista.map((item) => item.nombre);
       setDepartamentos(nombres);
     } catch (error) {
       console.error("Error fetching departamentos:", error);

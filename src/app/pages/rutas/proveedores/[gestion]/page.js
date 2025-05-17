@@ -30,8 +30,13 @@ export default function GestionPage() {
         // 1. Obtener proveedores
         const proveedoresRes = await fetch("/api/proveedores");
         if (!proveedoresRes.ok) throw new Error("Error al obtener proveedores");
-        const proveedores = await proveedoresRes.json();
-        const proveedorSel = proveedores.find(
+        const proveedoresData = await proveedoresRes.json();
+        const proveedoresList = Array.isArray(proveedoresData)
+          ? proveedoresData
+          : Array.isArray(proveedoresData.proveedores)
+            ? proveedoresData.proveedores
+            : [];
+        const proveedorSel = proveedoresList.find(
           (p) => p.nombre.toLowerCase() === nombre.toLowerCase()
         );
         setProveedor(proveedorSel);
@@ -41,11 +46,16 @@ export default function GestionPage() {
         if (!departamentosRes.ok)
           throw new Error("Error al obtener departamentos");
         const departamentosData = await departamentosRes.json();
+        const departamentosList = Array.isArray(departamentosData)
+          ? departamentosData
+          : Array.isArray(departamentosData.departamentos)
+            ? departamentosData.departamentos
+            : [];
 
         // Filtrar departamentos según el rol
-        let departamentosFiltrados = departamentosData;
+        let departamentosFiltrados = departamentosList;
         if (rol === "Jefe_Departamento") {
-          departamentosFiltrados = departamentosData.filter(
+          departamentosFiltrados = departamentosList.filter(
             (dep) =>
               dep.Id_Departamento === idDepartamentoUsuario ||
               dep.nombre.trim().toLowerCase() ===
