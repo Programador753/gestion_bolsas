@@ -3,32 +3,35 @@ import { pool } from "@/app/api/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-export async function GET() {
+export async function GET(req) {
   const session = await getServerSession(authOptions);
+  const { searchParams } = new URL(req.url);
+  const departamentoId = searchParams.get("departamento");
 
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  let departamento = null;
-  if (session.user?.role === "Jefe_Departamento") {
-    departamento = session.user?.departamento;
-  }
-  // Si es administrador, departamento queda null, y la consulta debe traer todos.
-
   try {
     let query = `
-      SELECT P.* FROM DEPARTAMENTO AS D
-      JOIN PROVEEDOR_DEPARTAMENTO AS PD ON D.Id_Departamento = PD.Id_Departamento
-      JOIN PROVEEDORES AS P ON PD.Id_Proveedor = P.Id_Proveedor
+      SELECT DISTINCT P.* 
+      FROM PROVEEDORES P
+      JOIN PROVEEDOR_DEPARTAMENTO PD ON P.Id_Proveedor = PD.Id_Proveedor
     `;
-    let params = [];
+    const params = [];
 
-    if (departamento) {
-      query += ` WHERE D.nombre = ?`;
-      params.push(departamento);
+    // Aplicar filtro por departamento si:
+    // - Es Jefe_Departamento (usar su Id_Departamento asignado)
+    // - Es Administrador y seleccionó un departamento específico
+    if (session.user?.role === "Jefe_Departamento") {
+      query += ` WHERE PD.Id_Departamento = ?`;
+      params.push(session.user.Id_Departamento);
+    } else if (departamentoId) {
+      query += ` WHERE PD.Id_Departamento = ?`;
+      params.push(departamentoId);
     }
 
+    query += ` ORDER BY P.nombre`;
     const [proveedores] = await pool.query(query, params);
 
     return NextResponse.json({ proveedores });
