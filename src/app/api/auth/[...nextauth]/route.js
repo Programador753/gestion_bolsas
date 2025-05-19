@@ -54,7 +54,7 @@ export const authOptions = {
       if (user?.email) {
         try {
           const [rows] = await pool.query(
-            "SELECT Id_Usuario, rol, DEPARTAMENTO.nombre AS departamento FROM USUARIO, DEPARTAMENTO WHERE USUARIO.Id_Departamento = DEPARTAMENTO.Id_Departamento AND email = ?",
+            "SELECT Id_Usuario, rol, DEPARTAMENTO.Id_Departamento, DEPARTAMENTO.nombre AS departamento FROM USUARIO, DEPARTAMENTO WHERE USUARIO.Id_Departamento = DEPARTAMENTO.Id_Departamento AND email = ?",
             [user.email]
           );
           const dbUser = rows[0];
@@ -62,6 +62,7 @@ export const authOptions = {
             token.id = dbUser.Id_Usuario;
             token.role = dbUser.rol;
             token.departamento = dbUser.departamento;
+            token.Id_Departamento = dbUser.Id_Departamento;
           }
         } catch (err) {
           console.error("❌ Error al obtener datos del usuario:", err);
@@ -78,6 +79,7 @@ export const authOptions = {
       session.user.name = token.name;
       session.user.image = token.image;
       session.user.departamento = token.departamento;
+      session.user.Id_Departamento = token.Id_Departamento;
       return session;
     },
   },

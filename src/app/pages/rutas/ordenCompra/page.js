@@ -27,22 +27,34 @@ export default function OrdenCompraPage() {
     return session?.user?.role === "Administrador" || session?.user?.role === "Jefe_Departamento";
   };
 
-  // Detecta si el usuario es jefe de departamento
+  // Detectar roles
   const isJefeDepartamento = session?.user?.role === "Jefe_Departamento";
-  // const isAdmin = session?.user?.role === "Administrador";
+  const isAdmin = session?.user?.role === "Administrador";
 
   useEffect(() => {
     fetchOrdenes();
-    fetchProveedores();
     fetchDepartamentos();
-  }, []);
 
-  useEffect(() => {
-  // Si es jefe de departamento, autoasigna el departamento y bloquea selector
-  if (isJefeDepartamento) {
-    setDepartamento(session?.user?.departamento || "");
-  }
-}, [session, isJefeDepartamento]);
+    // Manejo específico para Jefe de Departamento
+    if (isJefeDepartamento && session?.user?.departamento) {
+      console.log("Seteando departamento para jefe:", session.user.departamento);
+      setDepartamento(session.user.departamento);
+      fetchProveedoresPorDepartamento(session.user.departamento);
+    }
+  }, [session, isJefeDepartamento]);
+
+  // Modificar el handler del departamento
+  const handleDepartamentoChange = async (e) => {
+    const newDepartamento = e.target.value;
+    setDepartamento(newDepartamento);
+    setProveedor(""); // Resetear proveedor seleccionado
+    
+    if (newDepartamento) {
+      await fetchProveedoresPorDepartamento(newDepartamento);
+    } else {
+      setProveedores([]);
+    }
+  };
 
   const fetchOrdenes = async () => {
     setLoading(true);
@@ -65,6 +77,30 @@ export default function OrdenCompraPage() {
       setProveedores(data.proveedores || data || []);
     } catch (err) {
       console.error("Error al cargar proveedores:", err);
+    } finally {
+      setLoadingProveedores(false);
+    }
+  };
+
+  const fetchProveedoresPorDepartamento = async (depId) => {
+    if (!depId) {
+      console.log("No hay ID de departamento");
+      return;
+    }
+    
+    setLoadingProveedores(true);
+    try {
+      console.log("Fetching proveedores para departamento:", depId);
+      const res = await fetch(`/api/proveedores/ordenes?departamento=${depId}`);
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Error al obtener proveedores');
+      
+      console.log("Proveedores obtenidos:", data.proveedores);
+      setProveedores(data.proveedores || []);
+    } catch (err) {
+      console.error("Error al cargar proveedores:", err);
+      setProveedores([]);
     } finally {
       setLoadingProveedores(false);
     }
@@ -165,6 +201,43 @@ export default function OrdenCompraPage() {
     setTipoProducto("fungible");
   };
 
+  // Actualizar renderDepartamentoInput para mostrar el valor correcto
+  const renderDepartamentoInput = () => {
+    if (isJefeDepartamento) {
+      const depInfo = departamentos.find(
+        d => d.Id_Departamento === Number(session?.user?.Id_Departamento)
+      );
+      return (
+        <input
+          type="text"
+          value={depInfo?.nombre || ''}
+          readOnly
+          className="border p-2 rounded bg-gray-200 cursor-not-allowed"
+          placeholder="Departamento"
+        />
+      );
+    }
+
+    return (
+      <select
+        value={departamento}
+        onChange={handleDepartamentoChange}
+        required
+        className="border p-2 rounded"
+      >
+        <option value="">Selecciona Departamento</option>
+        {departamentos.map((dep, index) => (
+          <option 
+            key={`dep-${dep.Id_Departamento}-${index}`}
+            value={dep.Id_Departamento}
+          >
+            {dep.nombre}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
   return (
     <div className="flex-grow container mx-auto p-4 min-h-screen">
       <h1 className="text-3xl font-bold text-center text-red-600 mb-6">Órdenes de Compra</h1>
@@ -226,32 +299,7 @@ export default function OrdenCompraPage() {
         </select>
 
         {/* Aquí añadimos el departamento */}
-        {isJefeDepartamento ? (
-          <input
-            type="text"
-            value={departamento}
-            readOnly
-            className="border p-2 rounded bg-gray-200 cursor-not-allowed"
-            placeholder="Departamento"
-          />
-        ) : (
-          <select
-            value={departamento}
-            onChange={(e) => setDepartamento(e.target.value)}
-            required
-            className="border p-2 rounded"
-          >
-            <option value="">Selecciona Departamento</option>
-            {(Array.isArray(departamentos) ? departamentos : []).map((dep, index) => (
-              <option 
-                key={`dep-${dep.Id_Departamento || dep.id}-${index}`}
-                value={dep.Id_Departamento || dep.id}
-              >
-                {dep.nombre || dep.name}
-              </option>
-            ))}
-          </select>
-        )}
+        {renderDepartamentoInput()}
 
         <select
           value={tipoProducto}
