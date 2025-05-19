@@ -39,41 +39,40 @@ export async function GET(request) {
               ELSE 'Sin Tipo'
           END AS tipo
       FROM ORDEN_COMPRA oc
-      LEFT JOIN USUARIO u ON oc.Id_Usuario = u.Id_Usuario
-      LEFT JOIN DEPARTAMENTO d ON u.Id_Departamento = d.Id_Departamento
+      LEFT JOIN DEPARTAMENTO d ON oc.Id_Departamento = d.Id_Departamento
       LEFT JOIN PROVEEDORES p ON oc.Id_Proveedor = p.Id_Proveedor
       LEFT JOIN OC_INVERSION oci ON oc.Id = oci.Id_OrderCompra
       LEFT JOIN OC_PRESUPUESTO ocp ON oc.Id = ocp.Id_OrderCompra
+      WHERE YEAR(oc.Fecha) = YEAR(CURDATE())
       ORDER BY oc.Fecha DESC
       LIMIT 50
     `);
     console.log('✅ Órdenes obtenidas:', ordenesCompra?.length || 0);
 
-    // CONSULTA 2: Gastos por departamento - SIMPLIFICADA
+    // CONSULTA 2: Gastos por departamento
     console.log('💰 Ejecutando consulta de gastos...');
     const [gastoRows] = await pool.query(`
       SELECT 
           d.nombre AS departamento,
           COALESCE(SUM(oc.Gasto), 0) AS gasto_total,
-          2024 AS anio
+          YEAR(oc.Fecha) AS anio
       FROM DEPARTAMENTO d
-      LEFT JOIN USUARIO u ON d.Id_Departamento = u.Id_Departamento
-      LEFT JOIN ORDEN_COMPRA oc ON u.Id_Usuario = oc.Id_Usuario
+      LEFT JOIN ORDEN_COMPRA oc ON d.Id_Departamento = oc.Id_Departamento
       WHERE d.nombre IS NOT NULL
-      GROUP BY d.Id_Departamento, d.nombre
-      HAVING gasto_total >= 0
+      AND YEAR(oc.Fecha) = YEAR(CURDATE())
+      GROUP BY d.Id_Departamento, d.nombre, YEAR(oc.Fecha)
       ORDER BY d.nombre
     `);
     console.log('✅ Gastos obtenidos:', gastoRows?.length || 0);
     console.log('💰 Detalle gastos:', gastoRows);
 
-    // CONSULTA 3: Presupuestos por departamento - SIMPLIFICADA  
+    // CONSULTA 3: Presupuestos por departamento 
     console.log('📊 Ejecutando consulta de presupuestos...');
     const [presupuestoRows] = await pool.query(`
       SELECT 
           d.nombre AS departamento,
           COALESCE(SUM(b.Inicial), 0) AS presupuesto_total,
-          2024 AS anio,
+          b.Anio AS anio,
           CASE
               WHEN COUNT(bi.Id) > 0 AND COUNT(bp.Id) > 0 THEN 'Mixto'
               WHEN COUNT(bi.Id) > 0 THEN 'Inversión'
@@ -85,8 +84,8 @@ export async function GET(request) {
       LEFT JOIN B_INVERSION bi ON b.Id = bi.Id_Bolsa
       LEFT JOIN B_PRESUPUESTO bp ON b.Id = bp.Id_Bolsa
       WHERE d.nombre IS NOT NULL
-      GROUP BY d.Id_Departamento, d.nombre
-      HAVING presupuesto_total >= 0
+      AND b.Anio = YEAR(CURDATE())
+      GROUP BY d.Id_Departamento, d.nombre, b.Anio
       ORDER BY d.nombre
     `);
     console.log('✅ Presupuestos obtenidos:', presupuestoRows?.length || 0);
