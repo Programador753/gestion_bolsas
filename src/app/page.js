@@ -132,6 +132,44 @@ const InicioPage = () => {
     '#0F766E'  // Teal
   ];
 
+  
+
+  const getTotalPresupuesto = () => {
+    const total = presupuestoPorDepartamento
+      .filter(item => item.departamento === (searchDepartamento || item.departamento))
+      .reduce((acc, item) => {
+        const valor = parseFloat(item.presupuesto_total);
+        return acc + (isNaN(valor) ? 0 : valor);
+      }, 0);
+    return total;
+  };
+
+  const getTotalGasto = () => {
+    const total = gastoPorDepartamento
+      .filter(item => item.departamento === (searchDepartamento || item.departamento))
+      .reduce((acc, item) => {
+        const valor = parseFloat(item.gasto_total);
+        return acc + (isNaN(valor) ? 0 : valor);
+      }, 0);
+    return total;
+  };
+
+  const getGeneralStats = () => {
+    const totalPresupuesto = getTotalPresupuesto();
+    const totalGasto = getTotalGasto();
+    const saldoRestante = totalPresupuesto - totalGasto;
+    const porcentajeGastado = totalPresupuesto > 0 
+      ? ((totalGasto / totalPresupuesto) * 100).toFixed(1)
+      : 0;
+
+    return {
+      totalPresupuesto,
+      totalGasto,
+      saldoRestante,
+      porcentajeGastado: parseFloat(porcentajeGastado)
+    };
+  };
+
   // Modificar la carga de datos para el pie chart
   const getPresupuestoCard = (departamento) => {
     return presupuestoPorDepartamento
@@ -151,6 +189,61 @@ const InicioPage = () => {
       .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
   };
 
+  // Actualizar las funciones de cálculo para Jefes de Departamento
+  const getDeptoStats = (departamento) => {
+    // Filtrar por departamento y año actual
+    const presupuesto = presupuestoPorDepartamento
+      .filter(item => 
+        item.departamento === departamento && 
+        item.anio === selectedYear
+      )
+      .reduce((acc, item) => {
+        const valor = parseFloat(item.presupuesto_total);
+        return acc + (isNaN(valor) ? 0 : valor);
+      }, 0);
+
+    const gasto = gastoPorDepartamento
+      .filter(item => 
+        item.departamento === departamento && 
+        item.anio === selectedYear
+      )
+      .reduce((acc, item) => {
+        const valor = parseFloat(item.gasto_total);
+        return acc + (isNaN(valor) ? 0 : valor);
+      }, 0);
+
+    const porcentaje = presupuesto > 0 
+      ? ((gasto / presupuesto) * 100).toFixed(1)
+      : 0;
+
+    return {
+      presupuesto,
+      gasto,
+      porcentaje: parseFloat(porcentaje),
+      restante: presupuesto - gasto
+    };
+  };
+
+  // Actualizar getCurrentMonthStats para jefes de departamento
+  const getCurrentMonthStats = (departamento = null) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const ordenesDelMes = ordenes.filter(orden => {
+      if (!orden.fecha) return false;
+      const fechaOrden = new Date(orden.fecha);
+      return fechaOrden.getMonth() === currentMonth && 
+             fechaOrden.getFullYear() === currentYear &&
+             (departamento ? orden.departamento === departamento : true);
+    });
+
+    return {
+      count: ordenesDelMes.length,
+      total: ordenesDelMes.reduce((acc, orden) => 
+        acc + (Number(orden.gasto) || 0), 0
+      )
+    };
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto p-5">
@@ -164,20 +257,14 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Mi Presupuesto</h3>
               <div className="text-center">
                 {(() => {
-                  const miPresupuesto = presupuestoPorDepartamento
-                    .filter(item => 
-                      item.departamento === session.user.departamento && 
-                      item.anio === selectedYear
-                    )
-                    .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
-                  
+                  const stats = getDeptoStats(session.user.departamento);
                   return (
                     <>
                       <p className="text-3xl font-bold text-blue-600">
-                        €{miPresupuesto.toLocaleString()}
+                        €{stats.presupuesto.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Asignado {selectedYear}
+                        Asignado
                       </p>
                     </>
                   );
@@ -190,20 +277,14 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Mi Gasto</h3>
               <div className="text-center">
                 {(() => {
-                  const miGasto = gastoPorDepartamento
-                    .filter(item => 
-                      item.departamento === session.user.departamento && 
-                      item.anio === selectedYear
-                    )
-                    .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
-                  
+                  const stats = getDeptoStats(session.user.departamento);
                   return (
                     <>
                       <p className="text-3xl font-bold text-orange-600">
-                        €{miGasto.toLocaleString()}
+                        €{stats.gasto.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Ejecutado {selectedYear}
+                        Ejecutado
                       </p>
                     </>
                   );
@@ -216,34 +297,17 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Estado Presupuesto</h3>
               <div className="text-center">
                 {(() => {
-                  const miPresupuesto = presupuestoPorDepartamento
-                    .filter(item => 
-                      item.departamento === session.user.departamento && 
-                      item.anio === selectedYear
-                    )
-                    .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
-                  
-                  const miGasto = gastoPorDepartamento
-                    .filter(item => 
-                      item.departamento === session.user.departamento && 
-                      item.anio === selectedYear
-                    )
-                    .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
-                  
-                  const porcentajeGastado = miPresupuesto > 0 
-                    ? ((miGasto / miPresupuesto) * 100).toFixed(1)
-                    : 0;
-                  
+                  const stats = getDeptoStats(session.user.departamento);
                   return (
                     <>
                       <p className={`text-3xl font-bold ${
-                        parseFloat(porcentajeGastado) > 90 
+                        stats.porcentaje > 90 
                           ? 'text-red-600' 
-                          : parseFloat(porcentajeGastado) > 75 
+                          : stats.porcentaje > 75 
                             ? 'text-yellow-600' 
                             : 'text-green-600'
                       }`}>
-                        {porcentajeGastado}%
+                        {stats.porcentaje}%
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
                         Utilizado
@@ -251,13 +315,13 @@ const InicioPage = () => {
                       <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                         <div 
                           className={`h-2 rounded-full ${
-                            parseFloat(porcentajeGastado) > 90 
+                            stats.porcentaje > 90 
                               ? 'bg-red-500' 
-                              : parseFloat(porcentajeGastado) > 75 
+                              : stats.porcentaje > 75 
                                 ? 'bg-yellow-500' 
                                 : 'bg-green-500'
                           }`}
-                          style={{ width: `${Math.min(parseFloat(porcentajeGastado), 100)}%` }}
+                          style={{ width: `${Math.min(stats.porcentaje, 100)}%` }}
                         ></div>
                       </div>
                     </>
@@ -303,9 +367,9 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Presupuesto</h3>
               <div className="text-center">
                 <p className="text-3xl font-bold text-blue-600">
-                  €{(pieData.reduce((acc, item) => acc + item.value, 0)).toLocaleString()}
+                  €{getTotalPresupuesto().toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">Total {selectedYear}</p>
+                <p className="text-sm text-gray-500 mt-2">Total</p>
               </div>
             </div>
 
@@ -313,12 +377,9 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Gasto</h3>
               <div className="text-center">
                 <p className="text-3xl font-bold text-orange-600">
-                  €{gastoPorDepartamento
-                    .filter(item => item.anio === selectedYear)
-                    .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0)
-                    .toLocaleString()}
+                  €{getTotalGasto().toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">Acumulado {selectedYear}</p>
+                <p className="text-sm text-gray-500 mt-2">Acumulado</p>
               </div>
             </div>
 
@@ -326,12 +387,7 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Saldo Restante</h3>
               <div className="text-center">
                 {(() => {
-                  const totalPresupuesto = pieData.reduce((acc, item) => acc + item.value, 0);
-                  const totalGasto = gastoPorDepartamento
-                    .filter(item => item.anio === selectedYear)
-                    .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0);
-                  const saldoRestante = totalPresupuesto - totalGasto;
-                  
+                  const { saldoRestante } = getGeneralStats();
                   return (
                     <>
                       <p className={`text-3xl font-bold ${saldoRestante >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -350,22 +406,14 @@ const InicioPage = () => {
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Órdenes del Mes</h3>
               <div className="text-center">
                 {(() => {
-                  const currentMonth = new Date().getMonth();
-                  const currentYear = new Date().getFullYear();
-                  const ordenesDelMes = ordenes.filter(orden => {
-                    const fechaOrden = new Date(orden.fecha);
-                    return fechaOrden.getMonth() === currentMonth && 
-                           fechaOrden.getFullYear() === currentYear;
-                  });
-                  const totalMes = ordenesDelMes.reduce((acc, orden) => acc + parseInt(orden.gasto) || 0, 0);
-                  
+                  const stats = getCurrentMonthStats();
                   return (
                     <>
                       <p className="text-3xl font-bold text-purple-600">
-                        {ordenesDelMes.length}
+                        {stats.count}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        €{totalMes.toLocaleString()} gastado
+                        €{stats.total.toLocaleString()} gastado
                       </p>
                     </>
                   );
@@ -373,50 +421,40 @@ const InicioPage = () => {
               </div>
             </div>
 
-            {/* Nueva Card: Estado General del Presupuesto */}
+            {/* Estado General */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 flex flex-col justify-center items-center h-48">
               <h3 className="text-base font-semibold text-red-600 mb-3 text-center">Estado General</h3>
               <div className="text-center">
                 {(() => {
-                  const totalPresupuesto = pieData.reduce((acc, item) => acc + item.value, 0);
-                  const totalGasto = gastoPorDepartamento
-                    .filter(item => item.anio === selectedYear)
-                    .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0);
-                  
-                  const porcentajeGastado = totalPresupuesto > 0 
-                    ? ((totalGasto / totalPresupuesto) * 100).toFixed(1)
-                    : 0;
-                  
+                  const { porcentajeGastado } = getGeneralStats();
                   return (
                     <>
                       <p className={`text-3xl font-bold ${
-                        parseFloat(porcentajeGastado) > 90 
+                        porcentajeGastado > 90 
                           ? 'text-red-600' 
-                          : parseFloat(porcentajeGastado) > 75 
+                          : porcentajeGastado > 75 
                             ? 'text-yellow-600' 
-                            : parseFloat(porcentajeGastado) > 50
+                            : porcentajeGastado > 50
                               ? 'text-blue-600'
                               : 'text-green-600'
                       }`}>
                         {porcentajeGastado}%
                       </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Utilizado
-                      </p>
+                      <p className="text-sm text-gray-500 mt-1">Utilizado</p>
                       <p className={`text-sm font-semibold mt-1 ${
-                        parseFloat(porcentajeGastado) > 90 
+                        porcentajeGastado > 90 
                           ? 'text-red-600' 
-                          : parseFloat(porcentajeGastado) > 75 
+                          : porcentajeGastado > 75 
                             ? 'text-yellow-600' 
-                            : parseFloat(porcentajeGastado) > 50
+                            : porcentajeGastado > 50
                               ? 'text-blue-600'
                               : 'text-green-600'
                       }`}>
-                        {parseFloat(porcentajeGastado) > 90 
+                        {porcentajeGastado > 90 
                           ? '⚠️ Crítico'
-                          : parseFloat(porcentajeGastado) > 75 
+                          : porcentajeGastado > 75 
                             ? '🔶 Precaución'
-                            : parseFloat(porcentajeGastado) > 50
+                            : porcentajeGastado > 50
                               ? '📊 Normal'
                               : '✅ Óptimo'}
                       </p>
@@ -673,7 +711,7 @@ const InicioPage = () => {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-red-600">
-                    Evolución {vistaEsMensual ? 'mensual 2024' : 'anual'} - {searchDepartamento}
+                    Evolución {vistaEsMensual ? 'mensual' : 'anual'} - {searchDepartamento}
                   </h3>
                   
                   {/* Toggle Switch  - Cambia entre vista mensual y anual*/}
