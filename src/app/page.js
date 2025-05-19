@@ -22,6 +22,7 @@ const InicioPage = () => {
   const [gastoPorDepartamento, setGastoPorDepartamento] = useState([]);
   const [presupuestoPorDepartamento, setPresupuestoPorDepartamento] = useState([]);
   const [searchDepartamento, setSearchDepartamento] = useState("");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Añadir estado para el año
   
   // Estados para mostrar/ocultar tablas
   const [showPresupuesto, setShowPresupuesto] = useState(true);
@@ -59,24 +60,36 @@ const InicioPage = () => {
     fetchData();
   }, []);
 
-  // Filtros
-  const filteredGasto = searchDepartamento.trim() === ""
-    ? gastoPorDepartamento
-    : gastoPorDepartamento.filter((item) =>
-        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
-      );
+  // Filtros - Modificar para manejar el departamento fijo del jefe
+  const isJefeDepartamento = session?.user?.role === "Jefe_Departamento";
 
-  const filteredPresupuesto = searchDepartamento.trim() === ""
-    ? presupuestoPorDepartamento
-    : presupuestoPorDepartamento.filter((item) =>
-        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
-      );
+  useEffect(() => {
+    if (isJefeDepartamento && session?.user?.departamento) {
+      setSearchDepartamento(session.user.departamento);
+    }
+  }, [session, isJefeDepartamento]);
 
-  const filteredOrdenes = searchDepartamento.trim() !== ""
-    ? ordenes.filter((orden) =>
-        orden.departamento && orden.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
-      )
-    : ordenes;
+  // Modificar filtros sin el año seleccionado
+  const filteredGasto = gastoPorDepartamento.filter((item) =>
+    isJefeDepartamento
+      ? item.departamento === session?.user?.departamento
+      : searchDepartamento.trim() === "" || 
+        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
+  );
+
+  const filteredPresupuesto = presupuestoPorDepartamento.filter((item) =>
+    isJefeDepartamento
+      ? item.departamento === session?.user?.departamento
+      : searchDepartamento.trim() === "" || 
+        item.departamento.toLowerCase().includes(searchDepartamento.toLowerCase())
+  );
+
+  const filteredOrdenes = ordenes.filter((orden) =>
+    isJefeDepartamento
+      ? orden.departamento === session?.user?.departamento
+      : searchDepartamento.trim() === "" || 
+        (orden.departamento && orden.departamento.toLowerCase().includes(searchDepartamento.toLowerCase()))
+  );
 
   // Datos para gráficos principales
   const yearsSet = new Set([
@@ -97,7 +110,7 @@ const InicioPage = () => {
 
   // Datos para el gráfico de pie (presupuesto por departamento)
   const pieData = presupuestoPorDepartamento
-    .filter(item => item.anio === 2024)
+    .filter(item => item.anio === selectedYear) // Usar selectedYear en lugar de 2024
     .map(item => ({
       name: item.departamento,
       value: parseFloat(item.presupuesto_total)
@@ -119,15 +132,28 @@ const InicioPage = () => {
     '#0F766E'  // Teal
   ];
 
+  // Modificar la carga de datos para el pie chart
+  const getPresupuestoCard = (departamento) => {
+    return presupuestoPorDepartamento
+      .filter(item => 
+        item.departamento === departamento && 
+        item.anio === selectedYear // Usar selectedYear
+      )
+      .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
+  };
+
+  const getGastoCard = (departamento) => {
+    return gastoPorDepartamento
+      .filter(item => 
+        item.departamento === departamento && 
+        item.anio === selectedYear // Usar selectedYear
+      )
+      .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto p-5">
-        {/* Header */}
-        {session?.user?.role === "Jefe_Departamento" && session.user.departamento && (
-          <h2 className="text-xl text-center text-gray-700 mb-8">
-            Departamento: {session.user.departamento}
-          </h2>
-        )}
 
         {/* Cards superiores - Layout condicional según el rol */}
         {session?.user?.role === "Jefe_Departamento" ? (
@@ -141,7 +167,7 @@ const InicioPage = () => {
                   const miPresupuesto = presupuestoPorDepartamento
                     .filter(item => 
                       item.departamento === session.user.departamento && 
-                      item.anio === 2024
+                      item.anio === selectedYear
                     )
                     .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
                   
@@ -151,7 +177,7 @@ const InicioPage = () => {
                         €{miPresupuesto.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Asignado 2024
+                        Asignado {selectedYear}
                       </p>
                     </>
                   );
@@ -167,7 +193,7 @@ const InicioPage = () => {
                   const miGasto = gastoPorDepartamento
                     .filter(item => 
                       item.departamento === session.user.departamento && 
-                      item.anio === 2024
+                      item.anio === selectedYear
                     )
                     .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
                   
@@ -177,7 +203,7 @@ const InicioPage = () => {
                         €{miGasto.toLocaleString()}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Ejecutado 2024
+                        Ejecutado {selectedYear}
                       </p>
                     </>
                   );
@@ -193,14 +219,14 @@ const InicioPage = () => {
                   const miPresupuesto = presupuestoPorDepartamento
                     .filter(item => 
                       item.departamento === session.user.departamento && 
-                      item.anio === 2024
+                      item.anio === selectedYear
                     )
                     .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
                   
                   const miGasto = gastoPorDepartamento
                     .filter(item => 
                       item.departamento === session.user.departamento && 
-                      item.anio === 2024
+                      item.anio === selectedYear
                     )
                     .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
                   
@@ -279,7 +305,7 @@ const InicioPage = () => {
                 <p className="text-3xl font-bold text-blue-600">
                   €{(pieData.reduce((acc, item) => acc + item.value, 0)).toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">Total 2024</p>
+                <p className="text-sm text-gray-500 mt-2">Total {selectedYear}</p>
               </div>
             </div>
 
@@ -288,11 +314,11 @@ const InicioPage = () => {
               <div className="text-center">
                 <p className="text-3xl font-bold text-orange-600">
                   €{gastoPorDepartamento
-                    .filter(item => item.anio === 2024)
+                    .filter(item => item.anio === selectedYear)
                     .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0)
                     .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">Acumulado 2024</p>
+                <p className="text-sm text-gray-500 mt-2">Acumulado {selectedYear}</p>
               </div>
             </div>
 
@@ -302,7 +328,7 @@ const InicioPage = () => {
                 {(() => {
                   const totalPresupuesto = pieData.reduce((acc, item) => acc + item.value, 0);
                   const totalGasto = gastoPorDepartamento
-                    .filter(item => item.anio === 2024)
+                    .filter(item => item.anio === selectedYear)
                     .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0);
                   const saldoRestante = totalPresupuesto - totalGasto;
                   
@@ -354,7 +380,7 @@ const InicioPage = () => {
                 {(() => {
                   const totalPresupuesto = pieData.reduce((acc, item) => acc + item.value, 0);
                   const totalGasto = gastoPorDepartamento
-                    .filter(item => item.anio === 2024)
+                    .filter(item => item.anio === selectedYear)
                     .reduce((acc, item) => acc + parseInt(item.gasto_total) || 0, 0);
                   
                   const porcentajeGastado = totalPresupuesto > 0 
@@ -407,7 +433,7 @@ const InicioPage = () => {
           {/* Columna izquierda: Tablas */}
           <div className="flex-1">
             {/* Filtro por departamento */}
-            {session?.user?.role !== "Jefe_Departamento" && (
+            {session?.user?.role !== "Jefe_Departamento" ? (
               <div className="mb-6">
                 <label className="block mb-2 font-semibold text-gray-700">
                   Filtrar por departamento:
@@ -425,6 +451,18 @@ const InicioPage = () => {
                     <option key={dep} value={dep}>{dep}</option>
                   ))}
                 </select>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <label className="block mb-2 font-semibold text-gray-700">
+                  Departamento:
+                </label>
+                <input
+                  type="text"
+                  value={session.user.departamento}
+                  readOnly
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-100"
+                />
               </div>
             )}
 
@@ -604,7 +642,7 @@ const InicioPage = () => {
             {session?.user?.role !== "Jefe_Departamento" && pieData.length > 0 && !searchDepartamento && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-red-600 mb-4">
-                  Distribución de Presupuesto por Departamento 2024
+                  Distribución de Presupuesto por Departamento {selectedYear}
                 </h3>
                 <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
                   <ResponsiveContainer width="100%" height={300}>
@@ -677,7 +715,7 @@ const InicioPage = () => {
                               const gastosDelMes = ordenes.filter(orden => {
                                 const fechaOrden = new Date(orden.fecha);
                                 return fechaOrden.getMonth() === index && 
-                                       fechaOrden.getFullYear() === 2024 &&
+                                       fechaOrden.getFullYear() === selectedYear &&
                                        orden.departamento === searchDepartamento;
                               });
                               
@@ -685,7 +723,7 @@ const InicioPage = () => {
                               
                               // Presupuesto mensual (distribución uniforme)
                               const presupuestoAnual = presupuestoPorDepartamento
-                                .filter(item => item.departamento === searchDepartamento && item.anio === 2024)
+                                .filter(item => item.departamento === searchDepartamento && item.anio === selectedYear)
                                 .reduce((acc, curr) => acc + parseFloat(curr.presupuesto_total), 0);
                               const presupuestoMensual = presupuestoAnual / 12;
                               
@@ -751,7 +789,7 @@ const InicioPage = () => {
                                 .filter(item => 
                                   item && 
                                   item.departamento === departamentoAUsar && 
-                                  item.anio === 2024
+                                  item.anio === selectedYear
                                 )
                                 .reduce((acc, curr) => {
                                   const valor = parseInt(curr.presupuesto_total) || 0;
@@ -762,7 +800,7 @@ const InicioPage = () => {
                                 .filter(item => 
                                   item && 
                                   item.departamento === departamentoAUsar && 
-                                  item.anio === 2024
+                                  item.anio === selectedYear
                                 )
                                 .reduce((acc, curr) => {
                                   const valor = parseInt(curr.gasto_total) || 0;
@@ -813,7 +851,7 @@ const InicioPage = () => {
             {session?.user?.role === "Jefe_Departamento" && session.user.departamento && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-red-600 mb-4">
-                  Mi Evolución Mensual 2024 - {session.user.departamento}
+                  Mi Evolución Mensual {selectedYear} - {session.user.departamento}
                 </h3>
                 <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
                   <ResponsiveContainer width="100%" height={300}>
@@ -829,7 +867,7 @@ const InicioPage = () => {
                           const gastosDelMes = ordenes.filter(orden => {
                             const fechaOrden = new Date(orden.fecha);
                             return fechaOrden.getMonth() === index && 
-                                   fechaOrden.getFullYear() === 2024 &&
+                                   fechaOrden.getFullYear() === selectedYear &&
                                    orden.departamento === session.user.departamento;
                           });
                           
@@ -837,7 +875,7 @@ const InicioPage = () => {
                           
                           // Presupuesto mensual (distribución uniforme)
                           const presupuestoAnual = presupuestoPorDepartamento
-                            .filter(item => item.departamento === session.user.departamento && item.anio === 2024)
+                            .filter(item => item.departamento === session.user.departamento && item.anio === selectedYear)
                             .reduce((acc, curr) => acc + parseFloat(curr.presupuesto_total), 0);
                           const presupuestoMensual = presupuestoAnual / 12;
                           
@@ -883,7 +921,7 @@ const InicioPage = () => {
                               .filter(item => 
                                 item && 
                                 item.departamento === session.user.departamento && 
-                                item.anio === 2024
+                                item.anio === selectedYear
                               )
                               .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
                             
@@ -891,7 +929,7 @@ const InicioPage = () => {
                               .filter(item => 
                                 item && 
                                 item.departamento === session.user.departamento && 
-                                item.anio === 2024
+                                item.anio === selectedYear
                               )
                               .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
                             
@@ -947,7 +985,7 @@ const InicioPage = () => {
                         .filter(item => 
                           item && 
                           item.departamento === session.user.departamento && 
-                          item.anio === 2024
+                          item.anio === selectedYear
                         )
                         .reduce((acc, curr) => acc + parseInt(curr.presupuesto_total) || 0, 0);
                       
@@ -955,7 +993,7 @@ const InicioPage = () => {
                         .filter(item => 
                           item && 
                           item.departamento === session.user.departamento && 
-                          item.anio === 2024
+                          item.anio === selectedYear
                         )
                         .reduce((acc, curr) => acc + parseInt(curr.gasto_total) || 0, 0);
                       
