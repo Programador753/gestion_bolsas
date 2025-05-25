@@ -1,21 +1,25 @@
-import React from "react";
-import { getBolsasByDepartamento } from "@/app/api/functions/select";
+import React from "react"; // Importa React para usar JSX
+import { getBolsasByDepartamento } from "@/app/api/functions/select"; // Importa función para obtener bolsas por departamento
 
-export default async function BolsasPage({ params }) {
-  const { slug } = params;
-  const departamento = decodeURIComponent(slug);
+export default async function BolsasPage({ params }) { // Componente de página asíncrono que recibe parámetros de la ruta
+  const { slug } = params; // Extrae el parámetro 'slug' de la URL
+  const departamento = decodeURIComponent(slug); // Decodifica el nombre del departamento
 
+  // Llama a la función para obtener las bolsas del departamento, maneja errores si ocurren
   const bolsas = await getBolsasByDepartamento(departamento).catch((error) =>
     console.error("Error fetching bolsas:", error)
   );
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white">
+      {/* Contenedor principal con estilos de altura mínima y centrado */}
       <main className="flex-grow px-4 py-10 w-full max-w-5xl">
+        {/* Contenido principal de la página */}
         <h1 className="text-center text-3xl font-extrabold text-red-700 mb-8">
           Bolsas de {departamento}
         </h1>
 
+        {/* Tabla de bolsas */}
         <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
           <table className="min-w-full table-auto text-sm text-gray-800">
             <thead className="bg-red-600 text-white">
@@ -28,6 +32,7 @@ export default async function BolsasPage({ params }) {
               </tr>
             </thead>
             <tbody>
+              {/* Si hay bolsas, las muestra en filas; si no, muestra mensaje */}
               {bolsas && bolsas.length > 0 ? (
                 bolsas.map((bolsa, idx) => (
                   <tr

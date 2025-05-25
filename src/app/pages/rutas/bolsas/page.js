@@ -1,41 +1,45 @@
-"use client";
+"use client"; // Indica que este archivo es un componente cliente en Next.js
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { useSession } from "next-auth/react";
+import React, { useEffect, useState } from "react"; // Importa React y hooks
+import Link from "next/link"; // Importa el componente Link de Next.js para navegación
+import { useSession } from "next-auth/react"; // Hook para obtener la sesión del usuario autenticado
 
-export default function Bolsas() {
-  const { data: session } = useSession();
-  const [bolsas, setBolsas] = useState([]);
-  const [filteredBolsas, setFilteredBolsas] = useState([]);
-  const [searchDepartamento, setSearchDepartamento] = useState("");
-  const [selectedAnio, setSelectedAnio] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [departamento, setDepartamento] = useState("");
-  const [anio, setAnio] = useState("");
-  const [monto, setMonto] = useState("");
-  const [tipoBolsa, setTipoBolsa] = useState("");
+export default function Bolsas() { // Componente principal de la página
+  const { data: session } = useSession(); // Obtiene la sesión actual del usuario
 
+  // Estados para manejar datos y formularios
+  const [bolsas, setBolsas] = useState([]); // Lista completa de bolsas
+  const [filteredBolsas, setFilteredBolsas] = useState([]); // Lista filtrada según búsqueda/filtros
+  const [searchDepartamento, setSearchDepartamento] = useState(""); // Filtro por departamento
+  const [selectedAnio, setSelectedAnio] = useState(""); // Filtro por año
+  const [showForm, setShowForm] = useState(false); // Mostrar/ocultar formulario de añadir bolsa
+  const [departamento, setDepartamento] = useState(""); // Departamento del formulario
+  const [anio, setAnio] = useState(""); // Año del formulario
+  const [monto, setMonto] = useState(""); // Monto del formulario
+  const [tipoBolsa, setTipoBolsa] = useState(""); // Tipo de bolsa del formulario
+
+  // useEffect para cargar las bolsas al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/bolsas");
+        const response = await fetch("/api/bolsas"); // Llama a la API para obtener bolsas
         const data = await response.json();
-        setBolsas(Array.isArray(data) ? data : []);
-        setFilteredBolsas(Array.isArray(data) ? data : []);
+        setBolsas(Array.isArray(data) ? data : []); // Guarda las bolsas en el estado
+        setFilteredBolsas(Array.isArray(data) ? data : []); // Inicializa el filtrado
       } catch (error) {
         console.error("Error fetching bolsas:", error);
         setBolsas([]);
         setFilteredBolsas([]);
       }
     };
-
     fetchData();
-  }, []);
+  }, []); // Solo se ejecuta una vez al montar
 
+  // useEffect para filtrar las bolsas según los filtros y el rol del usuario
   useEffect(() => {
     let filtered = bolsas;
 
+    // Si el usuario es Jefe de Departamento, solo ve su departamento
     if (
       session?.user?.role === "Jefe_Departamento" &&
       session.user.departamento
@@ -46,6 +50,7 @@ export default function Bolsas() {
           session.user.departamento.toLowerCase()
       );
     } else {
+      // Si no, puede filtrar por departamento y año
       if (searchDepartamento) {
         filtered = filtered.filter((bolsa) =>
           bolsa.Departamento.toLowerCase().includes(
@@ -60,9 +65,10 @@ export default function Bolsas() {
       }
     }
 
-    setFilteredBolsas(filtered);
-  }, [searchDepartamento, selectedAnio, bolsas, session]);
+    setFilteredBolsas(filtered); // Actualiza el estado filtrado
+  }, [searchDepartamento, selectedAnio, bolsas, session]); // Se ejecuta cuando cambian estos valores
 
+  // Obtiene los años y departamentos únicos para los selectores
   const uniqueAnios = [...new Set(bolsas.map((bolsa) => bolsa.Anio))];
   const uniqueDepartamentos = [
     ...new Set(bolsas.map((bolsa) => bolsa.Departamento)),
@@ -75,6 +81,7 @@ export default function Bolsas() {
           Bolsas
         </h1>
 
+        {/* Muestra el departamento si el usuario es Jefe de Departamento */}
         {session?.user?.role === "Jefe_Departamento" &&
           session.user.departamento && (
             <h2 className="text-lg font-normal text-center text-gray-700 mb-4">
@@ -82,7 +89,9 @@ export default function Bolsas() {
             </h2>
           )}
 
+        {/* Filtros y botones */}
         <div className="flex flex-col md:flex-row gap-4 mb-4">
+          {/* Filtro por departamento (no para Jefe de Departamento) */}
           {session?.user?.role !== "Jefe_Departamento" && (
             <select
               value={searchDepartamento}
@@ -98,6 +107,7 @@ export default function Bolsas() {
             </select>
           )}
 
+          {/* Filtro por año */}
           <select
             value={selectedAnio}
             onChange={(e) => setSelectedAnio(e.target.value)}
@@ -111,6 +121,7 @@ export default function Bolsas() {
             ))}
           </select>
 
+          {/* Botón para limpiar filtros */}
           <button
             onClick={() => {
               setSearchDepartamento("");
@@ -121,6 +132,7 @@ export default function Bolsas() {
             Limpiar filtros
           </button>
 
+          {/* Botón para mostrar formulario de añadir bolsa (solo Administrador) */}
           {session?.user?.role === "Administrador" && (
             <button
               onClick={() => setShowForm(!showForm)}
@@ -131,6 +143,7 @@ export default function Bolsas() {
           )}
         </div>
 
+        {/* Formulario para añadir bolsa */}
         {showForm && (
           <form
             onSubmit={async (e) => {
@@ -180,6 +193,7 @@ export default function Bolsas() {
             }}
             className="bg-gray-100 p-4 rounded shadow-md mb-4"
           >
+            {/* Selectores y campos del formulario */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Departamento
@@ -250,6 +264,7 @@ export default function Bolsas() {
               </select>
             </div>
 
+            {/* Botón para guardar */}
             <button
               type="submit"
               className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
@@ -259,6 +274,7 @@ export default function Bolsas() {
           </form>
         )}
 
+        {/* Tabla de bolsas */}
         <table className="min-w-full bg-white border border-blue-200 rounded-lg shadow-md">
           <thead className="bg-red-600 text-white">
             <tr>

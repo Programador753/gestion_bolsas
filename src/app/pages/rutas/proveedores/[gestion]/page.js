@@ -1,30 +1,33 @@
-"use client";
+"use client"; // Indica que este componente es cliente en Next.js
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react"; // Importa hooks de React
+import { useParams } from "next/navigation"; // Hook para obtener parámetros de la URL
+import { useSession } from "next-auth/react"; // Hook para obtener la sesión del usuario
 
-export default function GestionPage() {
-  const params = useParams();
-  const nombre = decodeURIComponent(params?.gestion || "");
-  const { data: session, status } = useSession();
+export default function GestionPage() { // Componente principal de la página
+  const params = useParams(); // Obtiene los parámetros de la URL
+  const nombre = decodeURIComponent(params?.gestion || ""); // Decodifica el nombre del proveedor desde la URL
+  const { data: session, status } = useSession(); // Obtiene la sesión y el estado de autenticación
 
-  const [proveedor, setProveedor] = useState(null);
-  const [departamentos, setDepartamentos] = useState([]);
-  const [seleccionados, setSeleccionados] = useState([]);
-  const [mensaje, setMensaje] = useState("");
+  // Estados locales para manejar datos y UI
+  const [proveedor, setProveedor] = useState(null); // Proveedor actual
+  const [departamentos, setDepartamentos] = useState([]); // Lista de departamentos
+  const [seleccionados, setSeleccionados] = useState([]); // Departamentos seleccionados
+  const [mensaje, setMensaje] = useState(""); // Mensaje de éxito o error
 
-  const rol = session?.user?.role;
-  const departamentoUsuario = session?.user?.departamento;
+  // Datos del usuario autenticado
+  const rol = session?.user?.role; // Rol del usuario
+  const departamentoUsuario = session?.user?.departamento; // Departamento del usuario
 
+  // ID del departamento del usuario (puede venir de diferentes campos)
   const idDepartamentoUsuario =
     session?.user?.id ||
     session?.user?.departamento ||
     session?.user?.Id_Departamento;
 
-  // Cargar datos al montar
+  // useEffect para cargar datos al montar o cuando cambian dependencias
   useEffect(() => {
-    if (!session) return;
+    if (!session) return; // Si no hay sesión, no hace nada
     const fetchData = async () => {
       try {
         // 1. Obtener proveedores
@@ -64,7 +67,7 @@ export default function GestionPage() {
         }
         setDepartamentos(departamentosFiltrados);
 
-        // 3. Obtener departamentos relacionados
+        // 3. Obtener departamentos relacionados con el proveedor
         if (proveedorSel) {
           const relacionadosRes = await fetch(
             `/api/proveedores/${proveedorSel.Id_Proveedor}/departamentos`
@@ -82,9 +85,9 @@ export default function GestionPage() {
     fetchData();
   }, [nombre, session, rol, departamentoUsuario, idDepartamentoUsuario]);
 
-  // Manejar cambios en los checkboxes
+  // Maneja el cambio de selección de departamentos (checkbox)
   const handleCheckboxChange = (id) => {
-    // Solo permitir cambios si es admin o jefe sobre su propio departamento
+    // Solo permite cambios si es admin o jefe sobre su propio departamento
     if (rol === "Contable") return;
     if (rol === "Jefe_Departamento") {
       // Solo puede marcar/desmarcar su propio departamento
@@ -96,7 +99,7 @@ export default function GestionPage() {
     );
   };
 
-  // Guardar cambios en el backend
+  // Guarda los cambios en el backend
   const handleGuardar = async () => {
     if (!proveedor) return;
     let departamentosAGuardar = seleccionados;
@@ -132,6 +135,7 @@ export default function GestionPage() {
     }
   };
 
+  // Muestra "Cargando..." si la sesión o el proveedor aún no están listos
   if (status === "loading" || !session) return <div>Cargando...</div>;
   if (!proveedor) return <div>Cargando...</div>;
 
@@ -140,9 +144,11 @@ export default function GestionPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center pt-6 px-4 pb-4 relative">
+      {/* Título principal */}
       <h1 className="text-3xl font-extrabold mb-6 text-red-600">
         Gestión de Proveedor: {proveedor.nombre}
       </h1>
+      {/* Mensaje de éxito o error */}
       {mensaje && (
         <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg 
@@ -152,16 +158,16 @@ export default function GestionPage() {
             .includes("éxito")
             ? "Cambios guardados con éxito"
             : "Error al guardar los cambios"}
-
         </div>
       )}
-      {/* Botón Volver estático arriba a la izquierda */}
+      {/* Botón Volver */}
       <div className="w-full">
         <button
           onClick={() => window.history.back()}
           className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-1 ml-4 bg-transparent"
           aria-label="Volver"
         >
+          {/* Icono de flecha */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6 mr-1"
@@ -179,6 +185,7 @@ export default function GestionPage() {
           Volver
         </button>
       </div>
+      {/* Contenedor principal */}
       <div className="w-full max-w-2xl bg-white text-black p-4 rounded-xl shadow-lg border border-black relative">
         <h1 className="text-3xl font-extrabold mb-6 text-red-600">
           {proveedor.nombre}
@@ -213,6 +220,7 @@ export default function GestionPage() {
             ))}
           </div>
         </div>
+        {/* Botón para guardar cambios */}
         {puedeGuardar && (
           <button
             onClick={handleGuardar}

@@ -11,7 +11,7 @@ export async function DELETE(request) {
     await pool.query('DELETE FROM departamentos WHERE nombre = ?', [nombre]);
 
     return new Response(JSON.stringify({ message: 'Departamento eliminado correctamente' }), { status: 200 });
-  } catch (error) {
+  } catch (error) { //Convierte un objeto o valor en una cadena JSON
     console.error('Error eliminando departamento:', error);
     return new Response(JSON.stringify({ error: 'Error eliminando departamento' }), { status: 500 });
   }
