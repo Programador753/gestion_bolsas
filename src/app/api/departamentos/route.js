@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const { nombre } = await request.json();
-    if (!nombre || !nombre.trim()) { //.trim() elimina los espacios en blanco al inicio y al final de un string
+    if (!nombre || !nombre.trim()) {
       return NextResponse.json({ error: 'Nombre de departamento requerido' }, { status: 400 });
     }
     await addDepartamento(nombre.trim());

@@ -1,13 +1,11 @@
 'use client';
-import { useSession } from "next-auth/react"; // Hook para obtener la sesión del usuario
-import React, { useEffect, useState } from 'react'; // Importa React y los hooks useEffect y useState
-import Link from 'next/link'; // Componente para navegación interna en Next.js
+import { useSession } from "next-auth/react";
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-// Componente para seleccionar departamento y filtrar
 const DepartamentoSelector = ({ onSeleccion, departamentoActual = '' }) => {
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState(departamentoActual);
 
-  // Actualiza el estado y llama a la función de selección al cambiar el input
   const handleChange = (e) => {
     const nuevoDepartamento = e.target.value;
     setDepartamentoSeleccionado(nuevoDepartamento);
@@ -38,21 +36,18 @@ const DepartamentoSelector = ({ onSeleccion, departamentoActual = '' }) => {
 };
 
 export default function DepartamentosPage() {
-  // Estados para departamentos, filtro, nuevo departamento y mensajes
   const [departamentos, setDepartamentos] = useState([]);
   const [departamentoFiltrado, setDepartamentoFiltrado] = useState('');
   const [nuevoDepartamento, setNuevoDepartamento] = useState('');
-  const [mensaje, setMensaje] = useState(''); // Mensaje flotante
-  const [tipoMensaje, setTipoMensaje] = useState(''); // Tipo de mensaje: success/error
+  const [mensaje, setMensaje] = useState(''); // Estado para manejar los mensajes
+  const [tipoMensaje, setTipoMensaje] = useState(''); // Estado para el tipo de mensaje ('success' o 'error')
 
-  const { data: session } = useSession(); // Obtiene la sesión del usuario
+  const { data: session } = useSession();
 
-  // useEffect: carga los departamentos al montar el componente
   useEffect(() => {
     fetchDepartamentos();
   }, []);
 
-  // Función para obtener departamentos desde la API
   const fetchDepartamentos = async () => {
     try {
       const res = await fetch('/api/departamentos');
@@ -70,14 +65,12 @@ export default function DepartamentosPage() {
     }
   };
 
-  // Normaliza texto para búsquedas (minúsculas y sin acentos)
   const normalizarTexto = (texto) =>
     texto
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, ''); // Elimina acentos
 
-  // Elimina un departamento tras confirmación
   const handleEliminarDepartamento = async (nombre) => {
     const confirmacion = window.confirm('¿Está seguro de eliminar el departamento?');
     if (!confirmacion) return;
@@ -100,7 +93,6 @@ export default function DepartamentosPage() {
     }
   };
 
-  // Añade un nuevo departamento
   const handleAgregarDepartamento = async () => {
     if (!nuevoDepartamento.trim()) return;
 
@@ -113,7 +105,7 @@ export default function DepartamentosPage() {
       setNuevoDepartamento('');
       setMensaje('Añadido correctamente');
       setTipoMensaje('success');
-      await fetchDepartamentos(); // Recarga la lista desde el backend
+      await fetchDepartamentos(); // <-- Recarga la lista desde el backend
     } catch (error) {
       console.error("Error agregando departamento:", error);
       setMensaje('Error al añadir el departamento');
@@ -138,7 +130,7 @@ export default function DepartamentosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center relative">
-      {/* Pop-up flotante para mensajes de éxito/error */}
+      {/* Pop-up flotante */}
       {mensaje && (
         <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${tipoMensaje === 'success' ? 'bg-green-600' : 'bg-red-600'
@@ -186,7 +178,6 @@ export default function DepartamentosPage() {
                   <td className="px-4 py-3 font-medium text-gray-800">{nombre}</td>
                   <td className="px-4 py-3 text-right" colSpan={2}>
                     <div className="flex justify-end gap-4">
-                      {/* Botón para ver bolsas del departamento */}
                       <Link href={`./bolsas/${nombre}`}>
                         <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-md transition cursor-pointer">
                           Ver bolsas
@@ -205,7 +196,6 @@ export default function DepartamentosPage() {
                   </td>
                 </tr>
               ))}
-              {/* Mensaje si no hay departamentos que mostrar */}
               {departamentosMostrados.length === 0 && (
                 <tr>
                   <td colSpan="3" className="text-center py-6 text-gray-500">No hay departamentos que coincidan.</td>

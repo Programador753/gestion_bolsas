@@ -101,12 +101,9 @@ export default function AsignarProveedoresPage() {
   };
 
   if (status === "loading" || rol !== "Jefe_Departamento") return <div>Cargando...</div>;
-  // Si la sesión está cargando o el usuario no es Jefe_Departamento, muestra "Cargando..." y no permite acceso.
 
-  // Render principal de la página
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center relative">
-      {/* Mensaje flotante de éxito o error */}
       {mensaje && (
         <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-md text-white shadow-lg ${
@@ -116,14 +113,13 @@ export default function AsignarProveedoresPage() {
           {mensaje}
         </div>
       )}
-      {/* Botón Volver: arriba a la izquierda, fuera del main */}
+      {/* Botón Volver estático arriba a la izquierda, fuera del main */}
       <div className="w-full">
         <button
           onClick={() => typeof window !== "undefined" && window.history.back()}
           className="flex items-center text-red-700 hover:text-red-900 font-bold text-lg mb-6 mt-4 ml-4 bg-transparent"
           aria-label="Volver"
         >
-          {/* Icono de flecha */}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -134,7 +130,7 @@ export default function AsignarProveedoresPage() {
         <h1 className="text-center text-3xl font-extrabold text-red-700 mb-8">
           Asignar proveedores a tu departamento
         </h1>
-        {/* Input y botón para añadir un nuevo proveedor */}
+        {/* Input para añadir proveedor */}
         <div className="mb-6 flex gap-2">
           <input
             type="text"
@@ -150,19 +146,16 @@ export default function AsignarProveedoresPage() {
             Nuevo proveedor
           </button>
         </div>
-        {/* Tabla de proveedores no asignados */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
             <tbody>
               {proveedores.map((proveedor, index) => (
                 <tr key={index} className="bg-white border-b hover:bg-gray-50 transition">
-                  {/* Nombre del proveedor */}
                   <td>
                     <p className="px-2 py-3 font-semibold text-gray-800 text-base">
                       {proveedor.nombre}
                     </p>
                   </td>
-                  {/* Botón para asignar proveedor al departamento */}
                   <td className="px-2 py-3 text-right">
                     <button
                       onClick={() => handleAsignar(proveedor)}
@@ -173,7 +166,6 @@ export default function AsignarProveedoresPage() {
                   </td>
                 </tr>
               ))}
-              {/* Si no hay proveedores por asignar, muestra mensaje */}
               {proveedores.length === 0 && (
                 <tr>
                   <td colSpan="2" className="text-center py-4 text-gray-500">

@@ -1,22 +1,19 @@
-'use client'; // Indica que este componente es cliente en Next.js
+'use client';
+import React, { useState, useEffect } from 'react';
+import { use } from 'react';
 
-import React, { useState, useEffect } from 'react'; // Importa React y hooks
-import { use } from 'react'; // Importa el hook use (no es común, se explica abajo)
-
-export default function Page({ params }) { // Componente principal que recibe los parámetros de la ruta
-  // Usar React.use() para acceder a los parámetros (no es habitual, normalmente se usa directamente params)
+export default function Page({ params }) {
+  // Usar React.use() para acceder a los parámetros
   const parameters = use(params);
-  const { slug, departamento, anio } = parameters; // Extrae los parámetros de la URL
+  const { slug, departamento, anio } = parameters;
 
-  const decodedDepartamento = decodeURIComponent(departamento); // Decodifica el nombre del departamento
-  const decodedSlug = decodeURIComponent(slug); // Decodifica el tipo de bolsa
-  const normalizedSlug = decodedSlug.replace('Inversión', 'Inversion'); // Normaliza el nombre del tipo de bolsa
+  const decodedDepartamento = decodeURIComponent(departamento);
+  const decodedSlug = decodeURIComponent(slug);
+  const normalizedSlug = decodedSlug.replace('Inversión', 'Inversion');
 
-  // Estados para almacenar datos y estado de facturas
-  const [datos, setDatos] = useState([]); // Lista de órdenes de compra
-  const [facturaStatus, setFacturaStatus] = useState({}); // Estado de existencia de factura por orden
+  const [datos, setDatos] = useState([]);
+  const [facturaStatus, setFacturaStatus] = useState({});
 
-  // Función para obtener los datos de las órdenes de compra
   const fetchDatos = async () => {
     try {
       const searchParams = new URLSearchParams({
@@ -32,7 +29,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
     }
   };
 
-  // Verifica si existe factura para una orden
   const checkFactura = async (ordenId) => {
     try {
       const res = await fetch(`/api/facturas/${ordenId}`);
@@ -43,7 +39,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
     }
   };
 
-  // Maneja la subida de archivos PDF de factura
   const handleFileUpload = async (e, ordenId) => {
     const file = e.target.files[0];
     if (!file || file.type !== 'application/pdf') {
@@ -67,21 +62,20 @@ export default function Page({ params }) { // Componente principal que recibe lo
       }
 
       alert('Factura subida correctamente');
-      await fetchDatos(); // Recarga los datos tras subir la factura
+      await fetchDatos(); // Ahora fetchDatos está disponible aquí
     } catch (error) {
       console.error('Error:', error);
       alert(error.message || 'Error al subir la factura');
     }
   };
 
-  // Muestra el PDF de la factura en una nueva ventana
   const handleViewPdf = async (ordenId) => {
     try {
       const res = await fetch(`/api/facturas/${ordenId}`);
       const data = await res.json();
       
       if (res.ok && data.pdfPath) {
-        // Construye la URL completa para abrir el PDF
+        // Usar la URL completa incluyendo el dominio
         const baseUrl = window.location.origin;
         window.open(`${baseUrl}/facturas/${data.pdfPath}`, '_blank');
       } else {
@@ -93,7 +87,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
     }
   };
 
-  // Elimina la factura asociada a una orden
   const handleDeleteFactura = async (ordenId) => {
     if (!confirm('¿Está seguro de eliminar la factura?')) return;
     
@@ -111,7 +104,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
     }
   };
 
-  // Elimina una orden de compra
   const handleDeleteOrden = async (ordenId) => {
     if (!confirm('¿Está seguro de eliminar esta orden de compra?')) return;
     
@@ -131,14 +123,13 @@ export default function Page({ params }) { // Componente principal que recibe lo
     }
   };
 
-  // useEffect para cargar datos cuando cambian los parámetros principales
   useEffect(() => {
     fetchDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decodedDepartamento, anio, normalizedSlug]);
 
-  // useEffect para verificar el estado de las facturas cuando cambian los datos
   useEffect(() => {
+    // Verificar estado de facturas al cargar datos
     datos.forEach(orden => checkFactura(orden.Id));
   }, [datos]);
 
@@ -174,6 +165,7 @@ export default function Page({ params }) { // Componente principal que recibe lo
                     <td className="px-4 py-3">{orden.Codigo}</td>
                     <td className="px-4 py-3">{orden.Tipo}</td>
                     <td className="px-4 py-3">{orden.nombre_proveedor}</td>
+
                     <td className="px-4 py-3">
                       {new Date(orden.Fecha).toLocaleDateString()}
                     </td>
@@ -200,7 +192,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
                               onClick={() => document.getElementById(`upload-${orden.Id}`).click()}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm w-full flex items-center justify-center gap-2"
                             >
-                              {/* Icono de subir */}
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                               </svg>
@@ -213,7 +204,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
                               onClick={() => handleViewPdf(orden.Id)}
                               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center gap-2"
                             >
-                              {/* Icono de ver */}
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -224,7 +214,6 @@ export default function Page({ params }) { // Componente principal que recibe lo
                               onClick={() => handleDeleteFactura(orden.Id)}
                               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center gap-2"
                             >
-                              {/* Icono de eliminar */}
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
@@ -232,12 +221,12 @@ export default function Page({ params }) { // Componente principal que recibe lo
                             </button>
                           </>
                         )}
+                        
                         {/* Botón Eliminar Orden */}
                         <button
                           onClick={() => handleDeleteOrden(orden.Id)}
                           className="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center gap-2 mt-2"
                         >
-                          {/* Icono de eliminar */}
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>

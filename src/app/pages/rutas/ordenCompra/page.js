@@ -1,29 +1,29 @@
-"use client"; // Indica que este componente es del lado del cliente
+"use client";
 
-import { useSession } from "next-auth/react"; // Importa hook para sesión de usuario
-import { useEffect, useState } from "react"; // Importa hooks de React
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export default function OrdenCompraPage() {
-  const { data: session } = useSession(); // Obtiene la sesión del usuario
-  const [ordenesCompra, setOrdenesCompra] = useState([]); // Estado para órdenes de compra
-  const [proveedores, setProveedores] = useState([]); // Estado para proveedores
-  const [departamentos, setDepartamentos] = useState([]); // Estado para departamentos
+  const { data: session } = useSession();
+  const [ordenesCompra, setOrdenesCompra] = useState([]);
+  const [proveedores, setProveedores] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
 
-  const [codigo, setCodigo] = useState(""); // Estado para código
-  const [numeroInversion, setNumeroInversion] = useState(""); // Estado para número de inversión
-  const [tipo, setTipo] = useState(""); // Estado para tipo
-  const [fecha, setFecha] = useState(""); // Estado para fecha
-  const [gasto, setGasto] = useState(""); // Estado para gasto
-  const [comentario, setComentario] = useState(""); // Estado para comentario
-  const [proveedor, setProveedor] = useState(""); // Estado para proveedor seleccionado
-  const [departamento, setDepartamento] = useState(""); // Estado para departamento seleccionado
-  const [tipoProducto, setTipoProducto] = useState("fungible"); // Estado para tipo de producto
+  const [codigo, setCodigo] = useState("");
+  const [numeroInversion, setNumeroInversion] = useState("");
+  const [tipo, setTipo] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [gasto, setGasto] = useState("");
+  const [comentario, setComentario] = useState("");
+  const [proveedor, setProveedor] = useState("");
+  const [departamento, setDepartamento] = useState(""); // nuevo estado departamento
+  const [tipoProducto, setTipoProducto] = useState("fungible");
 
-  const [loading, setLoading] = useState(false); // Estado de carga general
-  const [loadingProveedores, setLoadingProveedores] = useState(false); // Estado de carga de proveedores
-  const [loadingDepartamentos, setLoadingDepartamentos] = useState(false); // Estado de carga de departamentos
+  const [loading, setLoading] = useState(false);
+  const [loadingProveedores, setLoadingProveedores] = useState(false);
+  const [loadingDepartamentos, setLoadingDepartamentos] = useState(false);
 
-  const canDelete = () => { // Función para saber si el usuario puede eliminar
+  const canDelete = () => {
     return session?.user?.role === "Administrador" || session?.user?.role === "Jefe_Departamento";
   };
 
@@ -46,39 +46,39 @@ export default function OrdenCompraPage() {
   // Modificar el handler del departamento
   const handleDepartamentoChange = async (e) => {
     const newDepartamento = e.target.value;
-    setDepartamento(newDepartamento); // Actualiza el estado del departamento seleccionado
+    setDepartamento(newDepartamento);
     setProveedor(""); // Resetear proveedor seleccionado
-
-    if (newDepartamento) { // Si hay un departamento seleccionado
-      await fetchProveedoresPorDepartamento(newDepartamento); // Carga proveedores de ese departamento
+    
+    if (newDepartamento) {
+      await fetchProveedoresPorDepartamento(newDepartamento);
     } else {
-      setProveedores([]); // Si no hay, limpia la lista de proveedores
+      setProveedores([]);
     }
   };
 
-  const fetchOrdenes = async () => { // Función para obtener las órdenes de compra
-    setLoading(true); // Activa el estado de carga
+  const fetchOrdenes = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/ordenes"); // Llama a la API de órdenes
-      const data = await res.json(); // Parsea la respuesta
-      setOrdenesCompra(data.ordenes || []); // Actualiza el estado con las órdenes recibidas
+      const res = await fetch("/api/ordenes");
+      const data = await res.json();
+      setOrdenesCompra(data.ordenes || []);
     } catch (err) {
-      console.error("Error al cargar órdenes:", err); // Muestra error en consola si falla
+      console.error("Error al cargar órdenes:", err);
     } finally {
-      setLoading(false); // Desactiva el estado de carga
+      setLoading(false);
     }
   };
 
-  const fetchProveedores = async () => { // Función para obtener todos los proveedores
-    setLoadingProveedores(true); // Activa el estado de carga de proveedores
+  const fetchProveedores = async () => {
+    setLoadingProveedores(true);
     try {
-      const res = await fetch("/api/proveedores/ordenes"); // Llama a la API de proveedores
-      const data = await res.json(); // Parsea la respuesta
-      setProveedores(data.proveedores || data || []); // Actualiza el estado con los proveedores recibidos
+      const res = await fetch("/api/proveedores/ordenes");
+      const data = await res.json();
+      setProveedores(data.proveedores || data || []);
     } catch (err) {
-      console.error("Error al cargar proveedores:", err); // Muestra error en consola si falla
+      console.error("Error al cargar proveedores:", err);
     } finally {
-      setLoadingProveedores(false); // Desactiva el estado de carga de proveedores
+      setLoadingProveedores(false);
     }
   };
 
@@ -355,35 +355,35 @@ export default function OrdenCompraPage() {
                 </th>
               ))}
               {canDelete() && (
-                <th className="border px-3 py-2 text-left">Acciones</th> // Columna de acciones si el usuario puede eliminar
+                <th className="border px-3 py-2 text-left">Acciones</th>
               )}
             </tr>
           </thead>
           <tbody>
-            {ordenesCompra.length === 0 && ( // Si no hay órdenes, muestra mensaje
+            {ordenesCompra.length === 0 && (
               <tr>
                 <td colSpan={10} className="text-center py-4 text-gray-500">
                   No hay órdenes registradas
                 </td>
               </tr>
             )}
-            {ordenesCompra.map((orden) => ( // Mapea cada orden de compra a una fila de la tabla
+            {ordenesCompra.map((orden) => (
               <tr key={orden.Id} className="hover:bg-gray-50">
-                <td className="border px-3 py-1">{orden.Codigo}</td> // Código de la orden
-                <td className="border px-3 py-1">{orden.NumeroInversion}</td> // Número de inversión
-                <td className="border px-3 py-1">{orden.Tipo}</td> // Tipo de orden
+                <td className="border px-3 py-1">{orden.Codigo}</td>
+                <td className="border px-3 py-1">{orden.NumeroInversion}</td>
+                <td className="border px-3 py-1">{orden.Tipo}</td>
                 <td className="border px-3 py-1">
-                  {new Date(orden.Fecha).toLocaleDateString()} // Fecha formateada
+                  {new Date(orden.Fecha).toLocaleDateString()}
                 </td>
-                <td className="border px-3 py-1">{orden.Gasto} €</td> // Gasto de la orden
-                <td className="border px-3 py-1">{orden.nombre_usuario}</td> // Usuario que creó la orden
-                <td className="border px-3 py-1">{orden.nombre_departamento}</td> // Departamento asociado
-                <td className="border px-3 py-1">{orden.nombre_proveedor}</td> // Proveedor asociado
-                <td className="border px-3 py-1">{orden.Comentario}</td> // Comentario de la orden
-                {canDelete() && ( // Si el usuario puede eliminar, muestra botón Eliminar
+                <td className="border px-3 py-1">{orden.Gasto} €</td>
+                <td className="border px-3 py-1">{orden.nombre_usuario}</td>
+                <td className="border px-3 py-1">{orden.nombre_departamento}</td>
+                <td className="border px-3 py-1">{orden.nombre_proveedor}</td>
+                <td className="border px-3 py-1">{orden.Comentario}</td>
+                {canDelete() && (
                   <td className="border px-3 py-1">
                     <button
-                      onClick={() => handleDelete(orden.Id)} // Llama a handleDelete con el ID de la orden
+                      onClick={() => handleDelete(orden.Id)}
                       className="text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded"
                     >
                       Eliminar

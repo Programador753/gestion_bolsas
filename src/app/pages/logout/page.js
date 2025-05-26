@@ -1,12 +1,12 @@
-"use client"; // Indica que este componente se ejecuta en el cliente
+"use client";
 
-import { signIn, signOut } from "next-auth/react";// Importa funciones para iniciar/cerrar sesión
-import { useSession } from "next-auth/react";// Hook para obtener la sesión del usuario
-import React, { useEffect } from "react"; // Importa React y el hook useEffect
-import Image from "next/image"; // Componente de Next.js para imágenes optimizadas
+import { signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import React, { useEffect } from "react";
+import Image from "next/image";
 
-const UserCard = () => { // Componente que muestra la información del usuario
-  const { data: session } = useSession(); // Obtiene la sesión actual
+const UserCard = () => {
+  const { data: session } = useSession();
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-white to-gray-100">
@@ -15,11 +15,11 @@ const UserCard = () => { // Componente que muestra la información del usuario
         <div className="flex flex-col items-center mb-6">
           <Image
               src={session.user.image}
-              alt={`Foto de perfil de ${session.user.name}`} // Texto alternativo
+              alt={`Foto de perfil de ${session.user.name}`}
               width={100}
               height={100}
               className="rounded-full"
-              priority // Prioridad de carga de ka imagen
+              priority
             />
           <h1 className="text-2xl font-bold text-[#E30613] mt-4">
             {session.user.name}
@@ -47,7 +47,7 @@ const UserCard = () => { // Componente que muestra la información del usuario
         {/* Botón */}
         <button
           className="mt-8 w-full py-2 bg-[#E30613] hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200"
-          onClick={() => signOut()} // Cierra la sesión al hacer clic
+          onClick={() => signOut()}
         >
           Cerrar sesión
         </button>
@@ -56,18 +56,18 @@ const UserCard = () => { // Componente que muestra la información del usuario
   );
 };
 
-export default function LoginPage() {  // Componente principal de la página de logout
-  const { data: session, status } = useSession(); // Obtiene la sesión y el estado de autenticación
+export default function LoginPage() {
+  const { data: session, status } = useSession();
 
-  useEffect(() => { // Efecto que se ejecuta cuando cambia el estado de autenticación
+  useEffect(() => {
     if (status === "authenticated") {
-      console.log("Usuario autenticado:", session.user); // Log si autenticado
+      console.log("Usuario autenticado:", session.user);
     } else if (status === "unauthenticated") {
-      console.log("Usuario no autenticado"); // Log si no autenticado en la consola del navegador
+      console.log("Usuario no autenticado");
     }
   }, [status, session]);
 
-  if (status === "loading") { // Si la sesión está cargando, muestra mensaje de carga
+  if (status === "loading") {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="text-lg font-medium text-gray-600">Cargando...</div>
@@ -75,5 +75,5 @@ export default function LoginPage() {  // Componente principal de la página de 
     );
   }
 
-  return <UserCard />; // Si la sesión está lista, muestra la tarjeta de usuario
+  return <UserCard />;
 }

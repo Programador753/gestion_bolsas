@@ -170,20 +170,13 @@ export default function ProveedoresPage() {
                   key={index}
                   className="bg-white border-b hover:bg-gray-50 transition"
                 >
-                  {/* Muestra el nombre del proveedor en la primera columna */}
                   <td>
                     <p className="px-2 py-3 font-semibold text-gray-800 text-base">
                       {proveedor.nombre}
                     </p>
                   </td>
-                  {/* Segunda columna: botones de acción */}
                   <td className="px-2 py-3">
                     <div className="flex justify-end font-medium text-gray-800">
-                      {/* 
-                        <Link> de Next.js: 
-                        Permite navegar a la página de gestión de ese proveedor específico.
-                        El href incluye el nombre del proveedor en la URL.
-                      */}
                       <Link
                         href={`/pages/rutas/proveedores/${proveedor.nombre}`}
                       >
@@ -191,11 +184,6 @@ export default function ProveedoresPage() {
                           Gestionar
                         </button>
                       </Link>
-                      {/* 
-                        Botón "Eliminar": 
-                        Solo visible si el usuario tiene rol "Administrador".
-                        Al hacer clic, llama a handleEliminarProveedor con el nombre del proveedor.
-                      */}
                       {rol === "Administrador" && (
                         <button
                           onClick={() =>
@@ -210,7 +198,6 @@ export default function ProveedoresPage() {
                   </td>
                 </tr>
               ))}
-              {/* Si no hay proveedores, muestra un mensaje */}
               {proveedores.length === 0 && (
                 <tr>
                   <td colSpan="2" className="text-center py-4 text-gray-500">
