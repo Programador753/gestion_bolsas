@@ -13,6 +13,7 @@
     "@types/cookie": "^0.6.0",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
+    "brace-expansion": "^4.0.1",
     "cookie": "^1.0.2",
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
