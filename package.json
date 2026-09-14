@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth/typeorm-adapter": "^2.9.0",
+    "@auth/typeorm-adapter": "^2.11.3",
     "@types/cookie": "^0.6.0",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
