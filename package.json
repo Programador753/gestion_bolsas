@@ -18,7 +18,7 @@
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.24.4",
-    "next": "^16.3.5",
+    "next": "^16.4.0",
     "next-auth": "^4.24.15",
     "postcss": "^8.5.23",
     "react": "^19.0.0",
